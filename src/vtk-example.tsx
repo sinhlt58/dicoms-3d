@@ -1,8 +1,6 @@
 
 import '@kitware/vtk.js/Rendering/Profiles/Geometry';
 
-import vtkFullScreenRenderWindow from '@kitware/vtk.js/Rendering/Misc/FullScreenRenderWindow';
-
 import vtkActor           from '@kitware/vtk.js/Rendering/Core/Actor';
 import vtkMapper          from '@kitware/vtk.js/Rendering/Core/Mapper';
 import vtkConeSource      from '@kitware/vtk.js/Filters/Sources/ConeSource';
@@ -11,10 +9,10 @@ import vtkGenericRenderWindow from '@kitware/vtk.js/Rendering/Misc/GenericRender
 import vtkOutlineFilter from '@kitware/vtk.js/Filters/General/OutlineFilter';
 
 export const VTKExample = () => {
-  const vtkContainerRef = useRef(null);
+  const vtkContainerRef = useRef<HTMLDivElement>(null);
   const context = useRef<any>(null);
-  const [coneResolution, setConeResolution] = useState(5);
-  const [representation, setRepresentation] = useState(2);
+  const [coneResolution] = useState(5);
+  const [representation] = useState(2);
 
   useEffect(() => {
     if (!context.current && vtkContainerRef.current) {
