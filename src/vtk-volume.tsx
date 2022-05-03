@@ -7,7 +7,7 @@ import vtkVolumeMapper from '@kitware/vtk.js/Rendering/Core/VolumeMapper';
 import vtkVolume from '@kitware/vtk.js/Rendering/Core/Volume';
 import vtkColorTransferFunction from '@kitware/vtk.js/Rendering/Core/ColorTransferFunction';
 import vtkPiecewiseFunction from '@kitware/vtk.js/Common/DataModel/PiecewiseFunction';
-import { vtkColorMaps } from './vtk_import';
+import { vtkAngleWidget, vtkColorMaps, vtkLabelWidget, vtkPaintFilter, vtkPaintWidget, vtkWidgetManager } from './vtk_import';
 import vtkImageData from '@kitware/vtk.js/Common/DataModel/ImageData';
 import { useEffect, useRef, useState } from 'react';
 import { VTKSliceExample } from './vtk-slice';
@@ -22,8 +22,13 @@ export const VTKVolumeExample = ({
   const vtkContainer3DRef = useRef<HTMLDivElement>(null);
   const context3D = useRef<any>();
 
+  const painterW = useRef<vtkPaintWidget>();
+
   useEffect(() => {
     if (!vtkContainer3DRef.current || !image) return;
+    if (!painterW.current) {
+      painterW.current = vtkPaintWidget.newInstance();
+    }
     if (!context3D.current) {
       const genericRenderWindow = vtkGenericRenderWindow.newInstance();
       genericRenderWindow.setContainer(vtkContainer3DRef.current as HTMLDivElement);
@@ -31,11 +36,20 @@ export const VTKVolumeExample = ({
       const renderer = genericRenderWindow.getRenderer();
       const renderWindow = genericRenderWindow.getRenderWindow();
 
-      const mapper = vtkVolumeMapper.newInstance();
-      mapper.setInputData(image);
+      // widgets
+      const widgetManager = vtkWidgetManager.newInstance();
+      widgetManager.setRenderer(renderer);
+      const paintHandler = widgetManager.addWidget(painterW.current);
+      const painter = vtkPaintFilter.newInstance();
 
+      const mapper = vtkVolumeMapper.newInstance();
       const actor = vtkVolume.newInstance();
+      mapper.setInputData(image);
       actor.setMapper(mapper);
+
+      painter.setRadius(5);
+      painterW.current.setRadius(5);
+      mapper.setInputConnection(painter.getOutputPort(), 1);
 
       // color opacity
       const lookupTable = vtkColorTransferFunction.newInstance();
@@ -66,6 +80,7 @@ export const VTKVolumeExample = ({
       console.log("position: ", camera.getPosition())
 
       renderWindow.render();
+      widgetManager.enablePicking();
       console.log("Done render")
 
       context3D.current = {
@@ -74,6 +89,7 @@ export const VTKVolumeExample = ({
         renderWindow,
         volumeActor: actor,
         volumeMapper: mapper,
+        widgetManager,
       }
     } else {
       const {volumeMapper, renderer, renderWindow} = context3D.current;
@@ -90,8 +106,8 @@ export const VTKVolumeExample = ({
         ref={vtkContainer3DRef}
         className="border rounded"
         style={{
-          width: "40%",
-          height: "40%",
+          width: "46%",
+          height: "46%",
         }}
       ></div>
       { image && <VTKSliceExample image={image} axis="X" />}

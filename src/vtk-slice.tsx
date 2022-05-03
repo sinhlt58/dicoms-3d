@@ -89,8 +89,8 @@ export const VTKSliceExample = ({
   return (
     <div ref={containerRef} className="relative"
       style={{
-        width: "40%",
-        height: "40%",
+        width: "46%",
+        height: "46%",
       }}
     >
       <span className="absolute top-1 left-1 text-lg font-bold text-white">{axis}</span>
