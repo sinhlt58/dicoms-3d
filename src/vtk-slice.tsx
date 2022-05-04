@@ -45,8 +45,7 @@ export const VTKSliceExample = ({
       // const renderWindow = fullScreenWindow.getRenderWindow();
       const genericRenderWindow = vtkGenericRenderWindow.newInstance();
       genericRenderWindow.setContainer(containerRef.current as HTMLDivElement);
-      genericRenderWindow.resize();
-      const apiSpecificRenderWindow = genericRenderWindow.getInteractor().getView();
+      // genericRenderWindow.resize();
       const renderer = genericRenderWindow.getRenderer();
       const renderWindow = genericRenderWindow.getRenderWindow();
 
@@ -82,7 +81,6 @@ export const VTKSliceExample = ({
         paintHandle: widgetManager.addWidget(widgets.paintWidget, ViewTypes.SLICE),
         polygonHandle: widgetManager.addWidget(widgets.polygonWidget, ViewTypes.SLICE),
       }
-      console.log(widgets.paintWidget)
       handles.polygonHandle.setOutputBorder(true);
       // widgetManager.grabFocus(widgets.polygonWidget);
       widgetManager.grabFocus(widgets.polygonWidget);
@@ -127,7 +125,7 @@ export const VTKSliceExample = ({
       // ----------------------------------------------------------------------------
       const ready = () => {
         renderer.resetCamera();
-        // fullScreenWindow.resize();
+        genericRenderWindow.resize();
         widgetManager.enablePicking();
       }
       
@@ -182,8 +180,8 @@ export const VTKSliceExample = ({
         ijk[slicingMode] = mapper.getSlice();
         image.indexToWorld(ijk, position);
 
-        widgets.paintWidget.getManipulator().setOrigin(position);
-        widgets.polygonWidget.getManipulator().setOrigin(position);
+        widgets.paintWidget.getManipulator().setHandleOrigin(position);
+        widgets.polygonWidget.getManipulator().setHandleOrigin(position);
         painter.setSlicingMode(slicingMode);
 
         handles.paintHandle.updateRepresentationForRender();
@@ -194,6 +192,7 @@ export const VTKSliceExample = ({
       mapper.onModified(update);
       // trigger initial update
       update();
+      renderWindow.render();
 
       context.current = {
         widgetManager,
@@ -226,7 +225,6 @@ export const VTKSliceExample = ({
       >
         <span className="absolute top-1 left-1 text-lg font-bold text-white">{axis}</span>
       </div>
-      <button onClick={handleGrab}>Grab</button>
     </Fragment>
   )
 }
