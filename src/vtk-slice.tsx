@@ -3,7 +3,7 @@ import vtkImageData from "@kitware/vtk.js/Common/DataModel/ImageData"
 import vtkImageMapper from "@kitware/vtk.js/Rendering/Core/ImageMapper";
 import vtkImageSlice from "@kitware/vtk.js/Rendering/Core/ImageSlice";
 import vtkGenericRenderWindow from "@kitware/vtk.js/Rendering/Misc/GenericRenderWindow";
-import { Fragment, useEffect, useRef } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { ImageConstants, ViewTypes, vtkInteractorStyleImage, vtkPaintFilter, vtkPaintWidget, vtkSplineWidget, vtkWidgetManager } from './vtk_import';
 import vtkColorTransferFunction from '@kitware/vtk.js/Rendering/Core/ColorTransferFunction';
 import vtkPiecewiseFunction from '@kitware/vtk.js/Common/DataModel/PiecewiseFunction';
@@ -21,6 +21,11 @@ export const VTKSliceExample = ({
   image,
   axis,
 }: Props) => {
+  const [currentSlice, setCurrentSlice] = useState(0);
+  const [maxSlice, setMaxSlice] = useState(0);
+  const [minSlice, setMinSlice] = useState(0);
+  const [colorWindow, setColorWindow] = useState(255);
+  const [colorLevel, setColorLevel] = useState(127);
 
   const context = useRef<any>();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -36,21 +41,14 @@ export const VTKSliceExample = ({
         sliceMode = SlicingMode.J;
       }
 
-      // const fullScreenWindow = vtkFullScreenRenderWindow.newInstance();
-      // fullScreenWindow.addController(containerRef.current);
-      // const apiSpecificRenderWindow = fullScreenWindow
-      //     .getInteractor()
-      //     .getView();
-      // const renderer = fullScreenWindow.getRenderer();
-      // const renderWindow = fullScreenWindow.getRenderWindow();
       const genericRenderWindow = vtkGenericRenderWindow.newInstance();
       genericRenderWindow.setContainer(containerRef.current as HTMLDivElement);
-      // genericRenderWindow.resize();
       const renderer = genericRenderWindow.getRenderer();
       const renderWindow = genericRenderWindow.getRenderWindow();
 
       // set 2D view
-      renderer.getActiveCamera().setParallelProjection(true);
+      const camera = renderer.getActiveCamera();
+      camera.setParallelProjection(true);
       const istyle = vtkInteractorStyleImage.newInstance();
       istyle.setInteractionMode('IMAGE_SLICING');
       renderWindow.getInteractor().setInteractorStyle(istyle);
@@ -82,8 +80,8 @@ export const VTKSliceExample = ({
         polygonHandle: widgetManager.addWidget(widgets.polygonWidget, ViewTypes.SLICE),
       }
       handles.polygonHandle.setOutputBorder(true);
+      widgetManager.grabFocus(widgets.paintWidget);
       // widgetManager.grabFocus(widgets.polygonWidget);
-      widgetManager.grabFocus(widgets.polygonWidget);
       
       // Paint filter
       const painter = vtkPaintFilter.newInstance();
@@ -173,6 +171,11 @@ export const VTKSliceExample = ({
 
       setCamera(sliceMode, renderer, image);
 
+      // update panel
+      const extent: any = image.getExtent();
+      setMaxSlice(extent[sliceMode * 2 + 1]);
+      setMinSlice(extent[sliceMode * 2]);
+
       const update = () => {
         const slicingMode = mapper.getSlicingMode() % 3;
         const ijk: Vector3 = [0, 0, 0];
@@ -197,6 +200,14 @@ export const VTKSliceExample = ({
       context.current = {
         widgetManager,
         widgets,
+        labelMap,
+        mapper,
+        actor,
+        handles,
+        renderWindow,
+        renderer,
+        painter,
+        camera,
       }
 
     } else {
@@ -215,15 +226,71 @@ export const VTKSliceExample = ({
     }
   }
 
+  const handleSliceChanged = (slice: number) => {
+    setCurrentSlice(slice);
+    context.current.mapper.setSlice(slice);
+    context.current.renderWindow.render();
+  }
+
+  const handleColorWindowChanged = (level: number) => {
+    setColorWindow(level);
+    context.current.actor.getProperty().setColorWindow(level);
+    context.current.renderWindow.render();
+  }
+
+  const handleColorLevelChanged = (level: number) => {
+    setColorLevel(level);
+    context.current.actor.getProperty().setColorLevel(level);
+    context.current.renderWindow.render();
+  }
+
   return (
     <Fragment>
-      <div ref={containerRef} className="relative"
+      <div className='relative'
         style={{
           width: "46%",
           height: "46%",
         }}
       >
-        <span className="absolute top-1 left-1 text-lg font-bold text-white">{axis}</span>
+        <div ref={containerRef} className="relative bg-rose-300"
+        >
+          <span className="absolute top-1 right-1 text-lg font-bold text-white">{axis}</span>
+        </div>
+        <div className='absolute top-1 left-1 flex flex-col gap-2 p-2 border rounded bg-white'
+        >
+          <div className='flex items-center gap-2'>
+            <input 
+              type="range"
+              min="0"
+              max={maxSlice}
+              value={currentSlice}
+              onChange={(e) => handleSliceChanged(parseInt(e.target.value))}
+            />
+            <span>Slice: {currentSlice}/{maxSlice}</span>
+          </div>
+          <div className='flex items-center gap-2'>
+            <input 
+              type="range"
+              min="0"
+              max="255"
+              value={colorWindow}
+              step="2"
+              onChange={(e) => handleColorWindowChanged(parseInt(e.target.value))}
+            />
+            <span>Window level: {colorWindow}</span>
+          </div>
+          <div className='flex items-center gap-2'>
+            <input 
+              type="range"
+              min="0"
+              max="255"
+              value={colorLevel}
+              step="2"
+              onChange={(e) => handleColorLevelChanged(parseInt(e.target.value))}
+            />
+            <span>Color level: {colorLevel}</span>
+          </div>
+        </div>
       </div>
     </Fragment>
   )
