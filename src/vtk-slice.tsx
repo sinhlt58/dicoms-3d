@@ -149,6 +149,7 @@ export const VTKSliceExample = ({
       const mapper = vtkImageMapper.newInstance() as any;
       const actor = vtkImageSlice.newInstance() as any;
       // mapper.setSliceAtFocalPoint(true);
+    
       actor.setMapper(mapper);
       actor.getProperty().setColorWindow(255);
       actor.getProperty().setColorLevel(127);
