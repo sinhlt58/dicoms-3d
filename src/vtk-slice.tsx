@@ -9,7 +9,6 @@ import vtkColorTransferFunction from '@kitware/vtk.js/Rendering/Core/ColorTransf
 import vtkPiecewiseFunction from '@kitware/vtk.js/Common/DataModel/PiecewiseFunction';
 import vtkRenderer from '@kitware/vtk.js/Rendering/Core/Renderer';
 import { Vector3 } from '@kitware/vtk.js/types';
-import vtkFullScreenRenderWindow from '@kitware/vtk.js/Rendering/Misc/FullScreenRenderWindow';
 
 const {SlicingMode} = ImageConstants;
 

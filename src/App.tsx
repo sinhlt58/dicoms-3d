@@ -2,9 +2,8 @@ import vtkImageData from '@kitware/vtk.js/Common/DataModel/ImageData';
 import { readImageDICOMFileSeries } from 'itk-wasm';
 import { useState } from 'react';
 import './App.css';
-import { VTKSliceExample } from './vtk-slice';
-import { VTKVolumeExample } from './vtk-volume';
 import { helper } from './helper';
+import { ThreeDEditorProvider } from './components/threeD-editor.provider';
 
 function App() {
 
@@ -12,8 +11,9 @@ function App() {
 
   const handleFileChanged = async (e: any) => {
     const files = e.target.files;
-    console.log("Reading images...");
+    console.log("Reading dicoms...");
     const res = await readImageDICOMFileSeries(files);
+    console.log("Done reading dicoms!");
     const {image: itkImage} = res as any; 
     const vtkImage: vtkImageData = helper.convertItkToVtkImage(itkImage) as vtkImageData;
     setVtkImage(vtkImage);
@@ -40,7 +40,7 @@ function App() {
               height: "100%"
             }}
           >
-            {vtkImage && <VTKVolumeExample image={vtkImage} />}
+            {vtkImage && <ThreeDEditorProvider imageData={vtkImage} />}
           </div>
         </div>
       </div>
