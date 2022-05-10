@@ -14,6 +14,7 @@ import { WindowVolume } from "./window-volume.component";
 
 interface ThreeDEditorState {
   editorContext: any;
+  renderAllWindows: () => void;
 }
 
 export const ThreeDEditorContext = createContext({} as ThreeDEditorState);
@@ -70,25 +71,33 @@ export const ThreeDEditorProvider = ({
       cfunc: vtkColorTransferFunction.newInstance(),
       ofunc: vtkPiecewiseFunction.newInstance(),
     };
-
-    // init for window slice
-    const windowSliceK = createGenericWindow();
-    const imageSliceK = {
-      image: {
-        mapper: vtkImageMapper.newInstance() as any,
-        actor: vtkImageSlice.newInstance() as any,
-      },
-      labelMap: {
-        mapper: vtkImageMapper.newInstance() as any,
-        actor: vtkImageSlice.newInstance() as any,
-        cfunc: vtkColorTransferFunction.newInstance(),
-        ofunc: vtkPiecewiseFunction.newInstance(),
-      },
+    const labelFilterVolume = {
+      mapper: vtkVolumeMapper.newInstance(),
+      actor: vtkVolume.newInstance(),
+      cfunc: vtkColorTransferFunction.newInstance(),
+      ofunc: vtkPiecewiseFunction.newInstance(),
     };
-    const windowsSliceData = {
-      [SlicingMode.K]: {
-        windowSlice: windowSliceK,
-        imageSlice: imageSliceK,
+
+    // init for windows slice
+    const windowsSliceData: any = {};
+    const axes = [SlicingMode.K, SlicingMode.I, SlicingMode.J];
+    for (const axis of axes) {
+      const windowSlice = createGenericWindow();
+      const imageSlice = {
+        image: {
+          mapper: vtkImageMapper.newInstance() as any,
+          actor: vtkImageSlice.newInstance() as any,
+        },
+        labelMap: {
+          mapper: vtkImageMapper.newInstance() as any,
+          actor: vtkImageSlice.newInstance() as any,
+          cfunc: vtkColorTransferFunction.newInstance(),
+          ofunc: vtkPiecewiseFunction.newInstance(),
+        },
+      };
+      windowsSliceData[axis] = {
+        windowSlice,
+        imageSlice,
       }
     }
 
@@ -100,13 +109,24 @@ export const ThreeDEditorProvider = ({
 
       windowVolume,
       imageVolume,
+      labelFilterVolume,
       
       windowsSliceData,
     });
   }, [imageData]);
+
+  const renderAllWindows = () => {
+    if (!context) return;
+    const {windowVolume, windowsSliceData} = context;
+    windowVolume.renderWindow.render();
+    for (const k of Object.keys(windowsSliceData)) {
+      windowsSliceData[k].windowSlice.renderWindow.render();
+    }
+  }
   
   const value: ThreeDEditorState = {
     editorContext: context,
+    renderAllWindows,
   };
 
   return (
@@ -114,6 +134,8 @@ export const ThreeDEditorProvider = ({
       <div className="h-full w-full flex gap-1 flex-wrap">
         <WindowVolume />
         <WindowSlicer axis={SlicingMode.K} />
+        <WindowSlicer axis={SlicingMode.I} />
+        <WindowSlicer axis={SlicingMode.J} />
       </div>
     </ThreeDEditorContext.Provider>
   )

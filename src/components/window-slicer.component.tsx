@@ -16,9 +16,12 @@ export const WindowSlicer = ({
   const [maxSlice, setMaxSlice] = useState(0);
   const [minSlice, setMinSlice] = useState(0);
   const [colorWindow, setColorWindow] = useState(255);
-  const [colorLevel, setColorLevel] = useState(127);
+  const [colorLevel, setColorLevel] = useState(2);
 
-  const {editorContext} = useThreeDEditorContext();
+  const {
+    editorContext,
+    renderAllWindows,
+  } = useThreeDEditorContext();
   const context = useRef<any>();
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -80,7 +83,7 @@ export const WindowSlicer = ({
 
     image.actor.setMapper(image.mapper);
     image.actor.getProperty().setColorWindow(255);
-    image.actor.getProperty().setColorLevel(127);
+    image.actor.getProperty().setColorLevel(2);
 
     // ----------------------------------------------------------------------------
     // Painting
@@ -174,25 +177,32 @@ export const WindowSlicer = ({
   const handleSliceChanged = (slice: number) => {
     setCurrentSlice(slice);
     context.current.image.mapper.setSlice(slice);
-    context.current.renderWindow.render();
+    renderAllWindows();
   }
 
   const handleColorWindowChanged = (level: number) => {
     setColorWindow(level);
     context.current.image.actor.getProperty().setColorWindow(level);
-    context.current.renderWindow.render();
+    renderAllWindows();
   }
 
   const handleColorLevelChanged = (level: number) => {
     setColorLevel(level);
     context.current.image.actor.getProperty().setColorLevel(level);
-    context.current.renderWindow.render();
+    renderAllWindows();
   }
 
   const handleContainerOnMouseEnter = () => {
     if (!context.current || !context.current.painter) return;
-    console.log(`Set painter filter slicing mode: ${axis}`);
-    context.current.painter.setSlicingMode(axis);
+    const {painter, widgetManager, widgets} = context.current;
+    painter.setSlicingMode(axis);
+    widgetManager.grabFocus(widgets.paintWidget);
+  }
+
+  const handleContainerOnMouseLeave = () => {
+    if (!context.current) return;
+    const {widgetManager} = context.current;
+    widgetManager.releaseFocus();
   }
 
   return (
@@ -203,8 +213,11 @@ export const WindowSlicer = ({
           height: "400px",
         }}
         onMouseEnter={() => handleContainerOnMouseEnter()}
+        onMouseLeave={() => handleContainerOnMouseLeave()}
       >
-        <div ref={containerRef} className="relative bg-rose-300"
+        <div
+          ref={containerRef}
+          className="relative bg-rose-300"
         >
           <span className="absolute top-1 right-1 text-lg font-bold text-white">{axis}</span>
         </div>

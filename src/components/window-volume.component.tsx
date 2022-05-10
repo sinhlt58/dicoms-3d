@@ -23,6 +23,7 @@ export const WindowVolume = () => {
       widgets,
       windowVolume,
       imageVolume,
+      labelFilterVolume,
       windowsSliceData,
     } = editorContext;
     const {genericRenderWindow, renderer, renderWindow} = windowVolume;
@@ -45,12 +46,26 @@ export const WindowVolume = () => {
     imageVolume.actor.getProperty().setRGBTransferFunction(0, imageVolume.cfunc);
     imageVolume.actor.getProperty().setScalarOpacity(0, imageVolume.ofunc);
 
-    renderer.addVolume(imageVolume.actor);
+    // set up filter label map
+    labelFilterVolume.mapper.setInputConnection(painter.getOutputPort());
+    labelFilterVolume.actor.setMapper(labelFilterVolume.mapper);
+    // set color label
+    labelFilterVolume.cfunc.addRGBPoint(1, 0, 0, 1);
+    labelFilterVolume.ofunc.addPoint(0, 0);
+    labelFilterVolume.ofunc.addPoint(1, 1);
+    labelFilterVolume.actor.getProperty().setRGBTransferFunction(0, labelFilterVolume.cfunc);
+    labelFilterVolume.actor.getProperty().setScalarOpacity(0, labelFilterVolume.ofunc);
+    // labelFilterVolume.actor.getProperty().setOpacity(0.5);
+    
+    renderer.addVolume(labelFilterVolume.actor);
+
+    // renderer.addVolume(imageVolume.actor);
 
     // add actors from slice windows
     for (const k of Object.keys(windowsSliceData)){
       const imageSlice = windowsSliceData[k].imageSlice;
-      renderer.addActor(imageSlice.image.actor);
+      // renderer.addActor(imageSlice.image.actor);
+      // renderer.addActor(imageSlice.labelMap.actor);
     }
 
     renderer.resetCamera();
