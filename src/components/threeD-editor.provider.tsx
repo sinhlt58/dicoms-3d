@@ -6,8 +6,9 @@ import vtkImageSlice from "@kitware/vtk.js/Rendering/Core/ImageSlice";
 import vtkVolume from "@kitware/vtk.js/Rendering/Core/Volume";
 import vtkVolumeMapper from "@kitware/vtk.js/Rendering/Core/VolumeMapper";
 import vtkGenericRenderWindow from "@kitware/vtk.js/Rendering/Misc/GenericRenderWindow";
-import { createContext, useContext, useEffect, useRef, useState } from "react";
-import { vtkPaintFilter, vtkPaintWidget, vtkSplineWidget, vtkWidgetManager } from "../vtk_import";
+import { createContext, useContext, useEffect, useState } from "react";
+import { SlicingMode, vtkPaintFilter, vtkPaintWidget, vtkSplineWidget, vtkWidgetManager } from "../vtk_import";
+import { WindowSlicer } from "./window-slicer.component";
 import { WindowVolume } from "./window-volume.component";
 
 
@@ -56,30 +57,40 @@ export const ThreeDEditorProvider = ({
         resolution: 1,
       }),
     };
+    painter.setBackgroundImage(imageData);
+    const radius = 20;
+    painter.setRadius(radius);
+    widgets.paintWidget.setRadius(radius);
 
     // init stuff for window volume
     const windowVolume = createGenericWindow();
     const imageVolume = {
       mapper: vtkVolumeMapper.newInstance(),
       actor: vtkVolume.newInstance(),
-      lookupTable: vtkColorTransferFunction.newInstance(),
-      piecewiseFunc: vtkPiecewiseFunction.newInstance(),
+      cfunc: vtkColorTransferFunction.newInstance(),
+      ofunc: vtkPiecewiseFunction.newInstance(),
     };
 
     // init for window slice
     const windowSliceK = createGenericWindow();
     const imageSliceK = {
-      imageSlice: {
+      image: {
         mapper: vtkImageMapper.newInstance() as any,
         actor: vtkImageSlice.newInstance() as any,
       },
       labelMap: {
         mapper: vtkImageMapper.newInstance() as any,
         actor: vtkImageSlice.newInstance() as any,
-        lookupTable: vtkColorTransferFunction.newInstance(),
-        piecewiseFunc: vtkPiecewiseFunction.newInstance(),
+        cfunc: vtkColorTransferFunction.newInstance(),
+        ofunc: vtkPiecewiseFunction.newInstance(),
       },
     };
+    const windowsSliceData = {
+      [SlicingMode.K]: {
+        windowSlice: windowSliceK,
+        imageSlice: imageSliceK,
+      }
+    }
 
     setContext({
       imageData,
@@ -90,8 +101,7 @@ export const ThreeDEditorProvider = ({
       windowVolume,
       imageVolume,
       
-      windowSliceK,
-      imageSliceK,
+      windowsSliceData,
     });
   }, [imageData]);
   
@@ -103,6 +113,7 @@ export const ThreeDEditorProvider = ({
     <ThreeDEditorContext.Provider value={value}>
       <div className="h-full w-full flex gap-1 flex-wrap">
         <WindowVolume />
+        <WindowSlicer axis={SlicingMode.K} />
       </div>
     </ThreeDEditorContext.Provider>
   )

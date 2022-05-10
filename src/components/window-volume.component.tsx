@@ -31,18 +31,18 @@ export const WindowVolume = () => {
     imageVolume.mapper.setInputData(imageData);
     imageVolume.actor.setMapper(imageVolume.mapper);
 
-    imageVolume.lookupTable.applyColorMap(vtkColorMaps.getPresetByName("Cool to Warm"));
+    imageVolume.cfunc.applyColorMap(vtkColorMaps.getPresetByName("Cool to Warm"));
     // const range = vtkImage.getPointData().getScalars().getRange();
-    imageVolume.lookupTable.setMappingRange(0, 256);
+    imageVolume.cfunc.setMappingRange(0, 256);
     // lookupTable.setMappingRange(0, 256);
-    imageVolume.lookupTable.updateRange();
+    imageVolume.cfunc.updateRange();
 
     for (let i=0; i<=8; i++) {
-      imageVolume.piecewiseFunc.addPoint(i * 32, i / 8);
+      imageVolume.ofunc.addPoint(i * 32, i / 8);
     }
 
-    imageVolume.actor.getProperty().setRGBTransferFunction(0, imageVolume.lookupTable);
-    imageVolume.actor.getProperty().setScalarOpacity(0, imageVolume.piecewiseFunc);
+    imageVolume.actor.getProperty().setRGBTransferFunction(0, imageVolume.cfunc);
+    imageVolume.actor.getProperty().setScalarOpacity(0, imageVolume.ofunc);
 
     renderer.addVolume(imageVolume.actor);
     renderer.resetCamera();

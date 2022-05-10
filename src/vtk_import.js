@@ -11,6 +11,8 @@ import vtkSplineWidget from '@kitware/vtk.js/Widgets/Widgets3D/SplineWidget';
 import vtkPaintFilter from '@kitware/vtk.js/Filters/General/PaintFilter';
 import { ViewTypes } from '@kitware/vtk.js/Widgets/Core/WidgetManager/Constants';
 
+const {SlicingMode} = ImageConstants;
+
 export {
   vtkColorMaps,
   ImageConstants,
@@ -22,4 +24,5 @@ export {
   vtkPaintFilter,
   vtkSplineWidget,
   ViewTypes,
+  SlicingMode,
 }
