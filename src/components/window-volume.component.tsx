@@ -23,6 +23,7 @@ export const WindowVolume = () => {
       widgets,
       windowVolume,
       imageVolume,
+      windowsSliceData,
     } = editorContext;
     const {genericRenderWindow, renderer, renderWindow} = windowVolume;
     genericRenderWindow.setContainer(containerRef.current as HTMLDivElement);
@@ -45,6 +46,13 @@ export const WindowVolume = () => {
     imageVolume.actor.getProperty().setScalarOpacity(0, imageVolume.ofunc);
 
     renderer.addVolume(imageVolume.actor);
+
+    // add actors from slice windows
+    for (const k of Object.keys(windowsSliceData)){
+      const imageSlice = windowsSliceData[k].imageSlice;
+      renderer.addActor(imageSlice.image.actor);
+    }
+
     renderer.resetCamera();
 
     renderWindow.render();
