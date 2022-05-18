@@ -28,6 +28,7 @@ export const WindowSlicer = ({
   useEffect(() => {
     if (!editorContext) return;
     const {
+      windowVolume,
       imageData,
       painter,
       widgets,
@@ -103,9 +104,11 @@ export const WindowSlicer = ({
     handles.paintHandle.onStartInteractionEvent(() => {
       painter.startStroke();
       painter.addPoint(widgets.paintWidget.getWidgetState().getTrueOrigin());
+      windowVolume.renderWindow.render();
     });
     handles.paintHandle.onInteractionEvent(() => {
       painter.addPoint(widgets.paintWidget.getWidgetState().getTrueOrigin());
+      windowVolume.renderWindow.render();
     });
     initializeHandle(handles.paintHandle);
     
