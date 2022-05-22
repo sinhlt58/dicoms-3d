@@ -8,13 +8,23 @@ import vtkVolumeMapper from "@kitware/vtk.js/Rendering/Core/VolumeMapper";
 import vtkGenericRenderWindow from "@kitware/vtk.js/Rendering/Misc/GenericRenderWindow";
 import { createContext, useContext, useEffect, useState } from "react";
 import { SlicingMode, vtkPaintFilter, vtkPaintWidget, vtkSplineWidget, vtkWidgetManager } from "../vtk_import";
+import { EditorLabel, EditorTool } from "./editor.models";
+import { ThreeDEditorNav } from "./threeD-editor-nav.component";
 import { WindowSlicer } from "./window-slicer.component";
 import { WindowVolume } from "./window-volume.component";
-
 
 interface ThreeDEditorState {
   editorContext: any;
   renderAllWindows: () => void;
+
+  activeTool: EditorTool | undefined;
+  setActiveTool: (v: EditorTool | undefined) => void;
+
+  activeLabel: EditorLabel | undefined;
+  setActiveLabel: (v: EditorLabel | undefined) => void;
+
+  labels: EditorLabel[];
+  setLabels: (v: EditorLabel[]) => void;
 }
 
 export const ThreeDEditorContext = createContext({} as ThreeDEditorState);
@@ -30,6 +40,31 @@ export const ThreeDEditorProvider = ({
 }: ThreeDEditorProviderProps) => {
 
   const [context, setContext] = useState<any>();
+  const [activeTool ,setActiveTool] = useState<EditorTool>();
+  const [activeLabel, setActiveLabel] = useState<EditorLabel>();
+  const [labels, setLabels] = useState<EditorLabel[]>([
+    {
+      id: 0,
+      name: "Dog",
+      color: "",
+      opacity: 1,
+      maskValue: 1,
+    },
+    {
+      id: 1,
+      name: "Cat",
+      color: "",
+      opacity: 1,
+      maskValue: 2,
+    },
+    {
+      id: 2,
+      name: "Bird",
+      color: "",
+      opacity: 1,
+      maskValue: 3,
+    },
+  ]);
 
   useEffect(() => {
     if (!imageData) return;
@@ -127,15 +162,24 @@ export const ThreeDEditorProvider = ({
   const value: ThreeDEditorState = {
     editorContext: context,
     renderAllWindows,
+    activeTool,
+    setActiveTool,
+    activeLabel,
+    setActiveLabel,
+    labels,
+    setLabels,
   };
 
   return (
     <ThreeDEditorContext.Provider value={value}>
-      <div className="h-full w-full flex gap-1 flex-wrap">
-        <WindowVolume />
-        <WindowSlicer axis={SlicingMode.K} />
-        <WindowSlicer axis={SlicingMode.I} />
-        <WindowSlicer axis={SlicingMode.J} />
+      <div className="h-full w-full flex">
+        <ThreeDEditorNav />
+        <div className="flex-auto flex flex-wrap gap-4 p-2">
+          <WindowVolume />
+          <WindowSlicer axis={SlicingMode.K} />
+          <WindowSlicer axis={SlicingMode.I} />
+          <WindowSlicer axis={SlicingMode.J} />
+        </div>
       </div>
     </ThreeDEditorContext.Provider>
   )

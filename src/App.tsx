@@ -32,16 +32,8 @@ function App() {
         </div>
       </div>
       <div className="grid grid-cols-12 h-full flex-auto ">
-        <div className="col-span-2"></div>
-        <div className="col-span-10 border-l">
-          <div className="p-1"
-            style={{
-              width: "100%",
-              height: "100%"
-            }}
-          >
-            {vtkImage && <ThreeDEditorProvider imageData={vtkImage} />}
-          </div>
+        <div className="col-span-12">
+          {vtkImage && <ThreeDEditorProvider imageData={vtkImage} />}
         </div>
       </div>
     </div>

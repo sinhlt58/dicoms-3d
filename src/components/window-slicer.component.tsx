@@ -5,6 +5,7 @@ import { Vector3 } from "@kitware/vtk.js/types";
 import { Fragment, useEffect, useRef, useState } from "react";
 import { ViewTypes, vtkInteractorStyleImage } from "../vtk_import";
 import { useThreeDEditorContext } from "./threeD-editor.provider";
+import { EditorToolType } from './editor.models';
 
 interface Props {
   axis: any,
@@ -21,6 +22,7 @@ export const WindowSlicer = ({
   const {
     editorContext,
     renderAllWindows,
+    activeTool,
   } = useThreeDEditorContext();
   const context = useRef<any>();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -117,6 +119,7 @@ export const WindowSlicer = ({
       painter.paintPolygon(points);
     
       handles.polygonHandle.updateRepresentationForRender();
+      windowVolume.renderWindow.render();
     });
     initializeHandle(handles.polygonHandle);
 
@@ -198,14 +201,23 @@ export const WindowSlicer = ({
   const handleContainerOnMouseEnter = () => {
     if (!context.current || !context.current.painter) return;
     const {painter, widgetManager, widgets} = context.current;
-    painter.setSlicingMode(axis);
-    widgetManager.grabFocus(widgets.paintWidget);
+
+    if (activeTool) {
+      painter.setSlicingMode(axis);
+    }
+    if (activeTool?.type === EditorToolType.SEGMENT_BRUSH) {
+      widgetManager.grabFocus(widgets.paintWidget);
+    } else if (activeTool?.type === EditorToolType.SEGMENT_POLY) {
+      widgetManager.grabFocus(widgets.polygonWidget);
+    }
+    
   }
 
   const handleContainerOnMouseLeave = () => {
     if (!context.current) return;
     const {widgetManager} = context.current;
     widgetManager.releaseFocus();
+    console.log("release")
   }
 
   return (
