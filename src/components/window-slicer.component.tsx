@@ -6,6 +6,7 @@ import { Fragment, useEffect, useRef, useState } from "react";
 import { ViewTypes, vtkInteractorStyleImage } from "../vtk_import";
 import { useThreeDEditorContext } from "./threeD-editor.provider";
 import { EditorToolType } from './editor.models';
+import { hexToRgb } from '../utils/utils';
 
 interface Props {
   axis: any,
@@ -23,6 +24,7 @@ export const WindowSlicer = ({
     editorContext,
     renderAllWindows,
     activeTool,
+    labels,
   } = useThreeDEditorContext();
   const context = useRef<any>();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -76,13 +78,9 @@ export const WindowSlicer = ({
     // label map pipeline
     labelMap.actor.setMapper(labelMap.mapper);
     labelMap.mapper.setInputConnection(painter.getOutputPort());
-    // set up label map color and opacity mapping
-    labelMap.cfunc.addRGBPoint(1, 0, 0, 1);
-    labelMap.ofunc.addPoint(0, 0);
-    labelMap.ofunc.addPoint(1, 1);
     labelMap.actor.getProperty().setRGBTransferFunction(labelMap.cfunc);
     labelMap.actor.getProperty().setPiecewiseFunction(labelMap.ofunc);
-    labelMap.actor.getProperty().setOpacity(0.5);
+    // labelMap.actor.getProperty().setOpacity(0.5);
 
     image.actor.setMapper(image.mapper);
     image.actor.getProperty().setColorWindow(255);
@@ -180,6 +178,24 @@ export const WindowSlicer = ({
     console.log(`Done init window slice: ${axis}`);
 
   }, [editorContext, axis]);
+
+  useEffect(() => {
+    if (!context.current) return;
+    const {
+      labelMap,
+      renderWindow,
+    } = context.current;
+
+    labelMap.ofunc.addPoint(0, 0);
+    console.log("labels: ", labels)
+    for (const label of labels) {
+      const rgb = hexToRgb(label.color);
+      labelMap.cfunc.addRGBPoint(label.maskValue, rgb[0], rgb[1], rgb[2]);
+      labelMap.ofunc.addPoint(label.maskValue, label.opacity / 100);
+    }
+    // labelMap.actor.getProperty().setOpacity(0.5);
+    renderWindow.render();
+  }, [labels]);
 
   const handleSliceChanged = (slice: number) => {
     setCurrentSlice(slice);
