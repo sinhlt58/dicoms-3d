@@ -79,17 +79,21 @@ export const WindowSlicer = ({
     // label map pipeline
     labelMap.mapper.setInputConnection(painter.getOutputPort());
     labelMap.actor.setMapper(labelMap.mapper);
-    labelMap.ofunc.addPoint(0, 0);
-    labelMap.ofunc.addPoint(1, 1);
-    labelMap.ofunc.addPoint(2, 1);
-    labelMap.ofunc.addPoint(3, 1);
+    // labelMap.ofunc.addPoint(0, 0);
+    // labelMap.ofunc.addPoint(1, 1);
+    // labelMap.ofunc.addPoint(2, 1);
+    // labelMap.ofunc.addPoint(3, 1);
     // labelMap.cfunc.addRGBPoint(0, 0, 0, 0);
     
-    labelMap.cfunc.addRGBPoint(1, 1, 0, 0);
-    labelMap.cfunc.addRGBPoint(2, 0, 1, 0);
-    labelMap.cfunc.addRGBPoint(3, 0, 0, 1);
+    // labelMap.cfunc.setMappingRange(0, 1);
+    // labelMap.cfunc.updateRange(0, 1);
+
+    // labelMap.cfunc.addRGBPoint(1, 1, 0, 0);
+    // labelMap.cfunc.addRGBPoint(2, 0, 1, 0);
+    // labelMap.cfunc.addRGBPoint(3, 0, 0, 1);
     labelMap.actor.getProperty().setRGBTransferFunction(0, labelMap.cfunc);
     labelMap.actor.getProperty().setScalarOpacity(0, labelMap.ofunc);
+    // labelMap.actor.getProperty().setInterpolationTypeToLinear();
     // labelMap.actor.getProperty().setOpacity(0.5);
 
     image.actor.setMapper(image.mapper);
@@ -202,7 +206,7 @@ export const WindowSlicer = ({
     labelMap.ofunc.addPoint(0, 0);
     for (const label of labels) {
       const rgb = hexToRgb(label.color);
-      // labelMap.cfunc.addRGBPoint(label.maskValue, rgb[0], rgb[1], rgb[2]);
+      labelMap.cfunc.addRGBPoint(label.maskValue, rgb[0], rgb[1], rgb[2]);
       labelMap.ofunc.addPoint(label.maskValue, label.opacity / 100);
     }
 
