@@ -46,6 +46,18 @@ export const ThreeDEditorNav = ({
     }
   }
 
+  const handleLabelOpacityChanged = (label: EditorLabel, v: number) => {
+    setLabels(labels.map(l => {
+      if (l.id === label.id) {
+        return {
+          ...l,
+          opacity: v,
+        }
+      }
+      return l;
+    }));
+  }
+
   return (
     <div className="w-80 h-full border-r border-blue-200 p-2">
       <div>
@@ -80,6 +92,19 @@ export const ThreeDEditorNav = ({
                   type="checkbox" 
                   checked={activeLabel?.id === label.id}
                   onChange={() => handleLabelChanged(label)}
+                />
+                <div style={{
+                  width: "40px",
+                  height: "20px",
+                  background: label.color,
+                  opacity: label.opacity,
+                }}></div>
+                <input 
+                  type="range"
+                  value={label.opacity}
+                  min={0}
+                  max={100}
+                  onChange={e => handleLabelOpacityChanged(label, parseFloat(e.target.value))}
                 />
                 <span>{label.name}</span>
               </div>

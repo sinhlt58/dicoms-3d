@@ -3,13 +3,18 @@ import vtkImageData from "@kitware/vtk.js/Common/DataModel/ImageData"
 import { useEffect, useRef } from "react";
 import { vtkColorMaps } from "../vtk_import";
 import { useThreeDEditorContext } from "./threeD-editor.provider"
+import { hexToRgb } from '../utils/utils';
 
 interface Props {
   imageData: vtkImageData,
 }
 export const WindowVolume = () => {
 
-  const {editorContext} = useThreeDEditorContext();
+  const {
+    editorContext,
+    renderAllWindows,
+    labels,
+  } = useThreeDEditorContext();
   
   const contextRef = useRef<any>();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -49,13 +54,8 @@ export const WindowVolume = () => {
     // set up filter label map
     labelFilterVolume.mapper.setInputConnection(painter.getOutputPort());
     labelFilterVolume.actor.setMapper(labelFilterVolume.mapper);
-    // set color label
-    labelFilterVolume.cfunc.addRGBPoint(1, 0, 0, 1);
-    labelFilterVolume.ofunc.addPoint(0, 0);
-    labelFilterVolume.ofunc.addPoint(1, 1);
     labelFilterVolume.actor.getProperty().setRGBTransferFunction(0, labelFilterVolume.cfunc);
     labelFilterVolume.actor.getProperty().setScalarOpacity(0, labelFilterVolume.ofunc);
-    // labelFilterVolume.actor.getProperty().setOpacity(0.5);
     
     renderer.addVolume(labelFilterVolume.actor);
 
@@ -75,6 +75,22 @@ export const WindowVolume = () => {
     console.log("done init WindowVolume");
 
   }, [editorContext]);
+
+  useEffect(() => {
+    if (!editorContext) return;
+    const {
+      windowVolume,
+      labelFilterVolume,
+    } = editorContext;
+
+    labelFilterVolume.ofunc.addPoint(0, 0);
+    for (const label of labels) {
+      const rgb = hexToRgb(label.color);
+      labelFilterVolume.cfunc.addRGBPoint(label.maskValue, rgb[0], rgb[1], rgb[2]);
+      labelFilterVolume.ofunc.addPoint(label.maskValue, label.opacity / 100);
+    }
+    windowVolume.renderWindow.render();
+  }, [labels, editorContext]);
 
   return (
     <div

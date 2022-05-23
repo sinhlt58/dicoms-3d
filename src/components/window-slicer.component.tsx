@@ -117,11 +117,12 @@ export const WindowSlicer = ({
     handles.polygonHandle.onEndInteractionEvent(() => {
       const points = handles.polygonHandle.getPoints();
       painter.paintPolygon(points);
-    
       handles.polygonHandle.updateRepresentationForRender();
       windowVolume.renderWindow.render();
     });
     initializeHandle(handles.polygonHandle);
+
+    handles.polygonHandle.setOutputBorder(true);
 
     ready();
 
@@ -220,6 +221,9 @@ export const WindowSlicer = ({
     console.log("release")
   }
 
+  const handleContainerOnMouseMove = () => {
+  }
+
   return (
     <Fragment>
       <div className='relative bg-red-300'
@@ -229,6 +233,7 @@ export const WindowSlicer = ({
         }}
         onMouseEnter={() => handleContainerOnMouseEnter()}
         onMouseLeave={() => handleContainerOnMouseLeave()}
+        onMouseMove={() => handleContainerOnMouseMove()}
       >
         <div
           ref={containerRef}

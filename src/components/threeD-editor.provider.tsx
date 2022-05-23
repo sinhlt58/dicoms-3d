@@ -46,22 +46,22 @@ export const ThreeDEditorProvider = ({
     {
       id: 0,
       name: "Dog",
-      color: "",
-      opacity: 1,
+      color: "#FF0000",
+      opacity: 100,
       maskValue: 1,
     },
     {
       id: 1,
       name: "Cat",
-      color: "",
-      opacity: 1,
+      color: "#00FF00",
+      opacity: 100,
       maskValue: 2,
     },
     {
       id: 2,
       name: "Bird",
-      color: "",
-      opacity: 1,
+      color: "#0000FF",
+      opacity: 100,
       maskValue: 3,
     },
   ]);
