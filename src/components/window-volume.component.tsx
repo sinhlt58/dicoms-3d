@@ -50,12 +50,13 @@ export const WindowVolume = () => {
 
     imageVolume.actor.getProperty().setRGBTransferFunction(0, imageVolume.cfunc);
     imageVolume.actor.getProperty().setScalarOpacity(0, imageVolume.ofunc);
-
+    
     // set up filter label map
     labelFilterVolume.mapper.setInputConnection(painter.getOutputPort());
     labelFilterVolume.actor.setMapper(labelFilterVolume.mapper);
     labelFilterVolume.actor.getProperty().setRGBTransferFunction(0, labelFilterVolume.cfunc);
     labelFilterVolume.actor.getProperty().setScalarOpacity(0, labelFilterVolume.ofunc);
+    // labelFilterVolume.actor.getProperty().setInterpolationTypeToLinear();
     
     renderer.addVolume(labelFilterVolume.actor);
 

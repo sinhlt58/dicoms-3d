@@ -84,7 +84,8 @@ export const WindowSlicer = ({
     labelMap.ofunc.addPoint(2, 1);
     labelMap.ofunc.addPoint(3, 1);
     // labelMap.cfunc.addRGBPoint(0, 0, 0, 0);
-    // labelMap.cfunc.addRGBPoint(1, 1, 0, 0);
+    
+    labelMap.cfunc.addRGBPoint(1, 1, 0, 0);
     labelMap.cfunc.addRGBPoint(2, 0, 1, 0);
     labelMap.cfunc.addRGBPoint(3, 0, 0, 1);
     labelMap.actor.getProperty().setRGBTransferFunction(0, labelMap.cfunc);
