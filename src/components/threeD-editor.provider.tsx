@@ -150,6 +150,19 @@ export const ThreeDEditorProvider = ({
     });
   }, [imageData]);
 
+  useEffect(() => {
+    if (!context) return;
+
+    if (activeLabel) {
+      console.log("setLabel: ", activeLabel.maskValue)
+      context.painter.setLabel(activeLabel.maskValue);
+    } else {
+      context.painter.setLabel(0);
+      console.log("setLabel: ", 0)
+    }
+
+  }, [activeLabel, context]);
+
   const renderAllWindows = () => {
     if (!context) return;
     const {windowVolume, windowsSliceData} = context;

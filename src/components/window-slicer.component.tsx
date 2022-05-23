@@ -25,8 +25,9 @@ export const WindowSlicer = ({
     renderAllWindows,
     activeTool,
     labels,
+    activeLabel,
   } = useThreeDEditorContext();
-  const context = useRef<any>();
+  const [context, setContext] = useState<any>();
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -76,10 +77,18 @@ export const WindowSlicer = ({
     }
 
     // label map pipeline
-    labelMap.actor.setMapper(labelMap.mapper);
     labelMap.mapper.setInputConnection(painter.getOutputPort());
-    labelMap.actor.getProperty().setRGBTransferFunction(labelMap.cfunc);
-    labelMap.actor.getProperty().setPiecewiseFunction(labelMap.ofunc);
+    labelMap.actor.setMapper(labelMap.mapper);
+    labelMap.ofunc.addPoint(0, 0);
+    labelMap.ofunc.addPoint(1, 1);
+    labelMap.ofunc.addPoint(2, 1);
+    labelMap.ofunc.addPoint(3, 1);
+    // labelMap.cfunc.addRGBPoint(0, 0, 0, 0);
+    // labelMap.cfunc.addRGBPoint(1, 1, 0, 0);
+    labelMap.cfunc.addRGBPoint(2, 0, 1, 0);
+    labelMap.cfunc.addRGBPoint(3, 0, 0, 1);
+    labelMap.actor.getProperty().setRGBTransferFunction(0, labelMap.cfunc);
+    labelMap.actor.getProperty().setScalarOpacity(0, labelMap.ofunc);
     // labelMap.actor.getProperty().setOpacity(0.5);
 
     image.actor.setMapper(image.mapper);
@@ -99,6 +108,9 @@ export const WindowSlicer = ({
       });
       handle.onEndInteractionEvent(() => {
         painter.endStroke();
+        let scalars = labelMap.mapper.getInputData().getPointData().getScalars();
+        let range = scalars.getRange();
+        console.log(range)
       });
     }
     handles.paintHandle.onStartInteractionEvent(() => {
@@ -127,10 +139,8 @@ export const WindowSlicer = ({
     // set input data
     image.mapper.setInputData(imageData);
     // add actors to renderers
-    renderer.addViewProp(image.actor);
-    renderer.addViewProp(labelMap.actor)
-    // update paint filter
-    painter.setLabel(1);
+    renderer.addActor(image.actor);
+    renderer.addActor(labelMap.actor);
 
     // set slicing mode
     image.mapper.setSlicingMode(axis);
@@ -157,6 +167,7 @@ export const WindowSlicer = ({
       handles.paintHandle.updateRepresentationForRender();
       handles.polygonHandle.updateRepresentationForRender();
       labelMap.mapper.set(image.mapper.get('slice', 'slicingMode'));
+      console.log("on modified")
     }
 
     image.mapper.onModified(update);
@@ -164,7 +175,7 @@ export const WindowSlicer = ({
     update();
     renderWindow.render();
 
-    context.current = {
+    const value: any = {
       widgetManager,
       widgets,
       labelMap,
@@ -175,49 +186,57 @@ export const WindowSlicer = ({
       painter,
       camera,
     }
+    setContext(value);
     console.log(`Done init window slice: ${axis}`);
 
   }, [editorContext, axis]);
 
   useEffect(() => {
-    if (!context.current) return;
+    if (!context) return;
     const {
       labelMap,
       renderWindow,
-    } = context.current;
+    } = context;
 
     labelMap.ofunc.addPoint(0, 0);
-    console.log("labels: ", labels)
     for (const label of labels) {
       const rgb = hexToRgb(label.color);
-      labelMap.cfunc.addRGBPoint(label.maskValue, rgb[0], rgb[1], rgb[2]);
+      // labelMap.cfunc.addRGBPoint(label.maskValue, rgb[0], rgb[1], rgb[2]);
       labelMap.ofunc.addPoint(label.maskValue, label.opacity / 100);
     }
-    // labelMap.actor.getProperty().setOpacity(0.5);
+
     renderWindow.render();
-  }, [labels]);
+  }, [labels, context]);
+
+  useEffect(() => {
+    if (!context) return;
+    if (!activeLabel) {
+      context.widgetManager.releaseFocus();
+    }
+
+  }, [activeLabel, context]);
 
   const handleSliceChanged = (slice: number) => {
     setCurrentSlice(slice);
-    context.current.image.mapper.setSlice(slice);
+    context.image.mapper.setSlice(slice);
     renderAllWindows();
   }
 
   const handleColorWindowChanged = (level: number) => {
     setColorWindow(level);
-    context.current.image.actor.getProperty().setColorWindow(level);
+    context.image.actor.getProperty().setColorWindow(level);
     renderAllWindows();
   }
 
   const handleColorLevelChanged = (level: number) => {
     setColorLevel(level);
-    context.current.image.actor.getProperty().setColorLevel(level);
+    context.image.actor.getProperty().setColorLevel(level);
     renderAllWindows();
   }
 
   const handleContainerOnMouseEnter = () => {
-    if (!context.current || !context.current.painter) return;
-    const {painter, widgetManager, widgets} = context.current;
+    if (!context || !context.painter || !activeLabel) return;
+    const {painter, widgetManager, widgets} = context;
 
     if (activeTool) {
       painter.setSlicingMode(axis);
@@ -227,14 +246,12 @@ export const WindowSlicer = ({
     } else if (activeTool?.type === EditorToolType.SEGMENT_POLY) {
       widgetManager.grabFocus(widgets.polygonWidget);
     }
-    
   }
 
   const handleContainerOnMouseLeave = () => {
-    if (!context.current) return;
-    const {widgetManager} = context.current;
+    if (!context) return;
+    const {widgetManager} = context;
     widgetManager.releaseFocus();
-    console.log("release")
   }
 
   const handleContainerOnMouseMove = () => {
