@@ -3,7 +3,7 @@ import vtkImageData from "@kitware/vtk.js/Common/DataModel/ImageData";
 import vtkRenderer from "@kitware/vtk.js/Rendering/Core/Renderer";
 import { Vector3 } from "@kitware/vtk.js/types";
 import { Fragment, useEffect, useRef, useState } from "react";
-import { ViewTypes, vtkInteractorStyleImage } from "../vtk_import";
+import { SlicingMode, ViewTypes, vtkInteractorStyleImage } from "../vtk_import";
 import { useThreeDEditorContext } from "./threeD-editor.provider";
 import { EditorToolType } from './editor.models';
 import { hexToRgb } from '../utils/utils';
@@ -19,6 +19,9 @@ export const WindowSlicer = ({
   const [minSlice, setMinSlice] = useState(0);
   const [colorWindow, setColorWindow] = useState(255);
   const [colorLevel, setColorLevel] = useState(2);
+  // camera
+  const [cameraZoom, setCameraZoom] = useState(1);
+  const cameraParallelScaleRef = useRef<number>();
 
   const {
     editorContext,
@@ -66,8 +69,16 @@ export const WindowSlicer = ({
       data.indexToWorld(ijk, focalPoint);
       ijk[sliceMode] = 1;
       data.indexToWorld(ijk, position);
-      renderer.getActiveCamera().set({focalPoint, position});
-      renderer.resetCamera();
+
+      renderer.getActiveCamera().set({
+        position: position,
+        focalPoint: focalPoint,
+      });
+      const bounds = image.actor.getBounds();
+      renderer.resetCamera(bounds);
+      if (sliceMode === SlicingMode.I) {
+        renderer.getActiveCamera().roll(-90);
+      }
     }
 
     const ready = () => {
@@ -79,18 +90,6 @@ export const WindowSlicer = ({
     // label map pipeline
     labelMap.mapper.setInputConnection(painter.getOutputPort());
     labelMap.actor.setMapper(labelMap.mapper);
-    // labelMap.ofunc.addPoint(0, 0);
-    // labelMap.ofunc.addPoint(1, 1);
-    // labelMap.ofunc.addPoint(2, 1);
-    // labelMap.ofunc.addPoint(3, 1);
-    // labelMap.cfunc.addRGBPoint(0, 0, 0, 0);
-    
-    // labelMap.cfunc.setMappingRange(0, 1);
-    // labelMap.cfunc.updateRange(0, 1);
-
-    // labelMap.cfunc.addRGBPoint(1, 1, 0, 0);
-    // labelMap.cfunc.addRGBPoint(2, 0, 1, 0);
-    // labelMap.cfunc.addRGBPoint(3, 0, 0, 1);
     labelMap.actor.getProperty().setRGBTransferFunction(0, labelMap.cfunc);
     labelMap.actor.getProperty().setScalarOpacity(0, labelMap.ofunc);
     // labelMap.actor.getProperty().setInterpolationTypeToLinear();
@@ -113,9 +112,6 @@ export const WindowSlicer = ({
       });
       handle.onEndInteractionEvent(() => {
         painter.endStroke();
-        let scalars = labelMap.mapper.getInputData().getPointData().getScalars();
-        let range = scalars.getRange();
-        console.log(range)
       });
     }
     handles.paintHandle.onStartInteractionEvent(() => {
@@ -151,7 +147,6 @@ export const WindowSlicer = ({
     image.mapper.setSlicingMode(axis);
     image.mapper.setSlice(0);
 
-    setCamera(axis, renderer, imageData);
 
     // update panel
     const extent: any = imageData.getExtent();
@@ -172,12 +167,14 @@ export const WindowSlicer = ({
       handles.paintHandle.updateRepresentationForRender();
       handles.polygonHandle.updateRepresentationForRender();
       labelMap.mapper.set(image.mapper.get('slice', 'slicingMode'));
-      console.log("on modified")
     }
 
     image.mapper.onModified(update);
     // trigger initial update
     update();
+    setCamera(axis, renderer, imageData);
+
+    cameraParallelScaleRef.current = camera.getParallelScale();
     renderWindow.render();
 
     const value: any = {
@@ -224,7 +221,8 @@ export const WindowSlicer = ({
   const handleSliceChanged = (slice: number) => {
     setCurrentSlice(slice);
     context.image.mapper.setSlice(slice);
-    renderAllWindows();
+    // renderAllWindows();
+    context.renderWindow.render();
   }
 
   const handleColorWindowChanged = (level: number) => {
@@ -237,6 +235,16 @@ export const WindowSlicer = ({
     setColorLevel(level);
     context.image.actor.getProperty().setColorLevel(level);
     renderAllWindows();
+  }
+
+  const handleCameraZoomChanged = (level: number) => {
+    if (!cameraParallelScaleRef.current) return;
+    setCameraZoom(level);
+    // context.camera.zoom(1 + level/100);
+    const v = cameraParallelScaleRef.current - (level - 1) * 5;
+    // console.log("parallelScale: ", context.camera.getParallelScale());
+    context.camera.setParallelScale(v);
+    context.renderWindow.render();
   }
 
   const handleContainerOnMouseEnter = () => {
@@ -291,7 +299,7 @@ export const WindowSlicer = ({
             />
             <span>Slice: {currentSlice}/{maxSlice}</span>
           </div>
-          <div className='flex items-center gap-2'>
+          <div className='flex items-center gap-2 hidden'>
             <input 
               type="range"
               min="0"
@@ -302,8 +310,8 @@ export const WindowSlicer = ({
             />
             <span>Window level: {colorWindow}</span>
           </div>
-          <div className='flex items-center gap-2'>
-            <input 
+          <div className='flex items-center gap-2 hidden'>
+            <input
               type="range"
               min="0"
               max="255"
@@ -312,6 +320,17 @@ export const WindowSlicer = ({
               onChange={(e) => handleColorLevelChanged(parseInt(e.target.value))}
             />
             <span>Color level: {colorLevel}</span>
+          </div>
+          <div className='flex items-center gap-2'>
+            <input
+              type="range"
+              min="1"
+              max="200"
+              value={cameraZoom}
+              step="1"
+              onChange={(e) => handleCameraZoomChanged(parseInt(e.target.value))}
+            />
+            <span>Zoom: {cameraZoom}</span>
           </div>
         </div>
       </div>
