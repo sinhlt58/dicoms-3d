@@ -92,12 +92,13 @@ export const WindowSlicer = ({
     labelMap.actor.setMapper(labelMap.mapper);
     labelMap.actor.getProperty().setRGBTransferFunction(0, labelMap.cfunc);
     labelMap.actor.getProperty().setScalarOpacity(0, labelMap.ofunc);
-    // labelMap.actor.getProperty().setInterpolationTypeToLinear();
-    // labelMap.actor.getProperty().setOpacity(0.5);
+    labelMap.actor.getProperty().setUseLookupTableScalarRange(true);
 
     image.actor.setMapper(image.mapper);
     image.actor.getProperty().setColorWindow(255);
     image.actor.getProperty().setColorLevel(2);
+
+    console.log(labelMap.actor.getProperty())
 
     // ----------------------------------------------------------------------------
     // Painting
