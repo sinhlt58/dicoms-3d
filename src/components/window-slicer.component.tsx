@@ -81,9 +81,9 @@ export const WindowSlicer = ({
 
     // set 2D view
     camera.setParallelProjection(true);
-    // const isstyle = vtkInteractorStyleImage.newInstance();
-    // isstyle.setInteractionMode('IMAGE_SLICING');
-    // renderWindow.getInteractor().setInteractorStyle(isstyle);
+    const isstyle = vtkInteractorStyleImage.newInstance();
+    isstyle.setInteractionMode('IMAGE_SLICING');
+    renderWindow.getInteractor().setInteractorStyle(isstyle);
 
     const setCamera = (sliceMode: any, renderer: vtkRenderer, data: vtkImageData) => {
       const ijk: Vector3 = [0, 0, 0];
@@ -251,11 +251,17 @@ export const WindowSlicer = ({
   const handleCameraZoomChanged = (level: number) => {
     if (!cameraParallelScaleRef.current) return;
     setCameraZoom(level);
-    // context.camera.zoom(1 + level/100);
     const v = cameraParallelScaleRef.current - (level - 1) * 5;
-    // console.log("parallelScale: ", context.camera.getParallelScale());
     context.camera.setParallelScale(v);
     context.renderWindow.render();
+  }
+
+  const updateHandlesVisibility = (visible: boolean) => {
+    if (!context) return;
+    const {handles, renderWindow} = context;
+    handles.paintHandle.setVisibility(visible);
+    handles.polygonHandle.setVisibility(visible);
+    renderWindow.render();
   }
 
   const handleContainerOnMouseEnter = () => {
@@ -280,12 +286,15 @@ export const WindowSlicer = ({
     } else if (activeTool?.type === EditorToolType.SEGMENT_POLY) {
       widgetManager.grabFocus(widgets.polygonWidget);
     }
+    updateHandlesVisibility(true);
   }
 
   const handleContainerOnMouseLeave = () => {
     if (!context) return;
     const {widgetManager} = context;
     widgetManager.releaseFocus();
+    
+    updateHandlesVisibility(false);
   }
 
   const handleContainerOnMouseMove = () => {
