@@ -17,6 +17,11 @@ interface ThreeDEditorState {
   editorContext: any;
   renderAllWindows: () => void;
 
+  volume3dVisibility: boolean;
+  setVolume3dVisibility: (v: boolean) => void;
+  slices3dVisibility: boolean;
+  setSlices3dVisibility: (v: boolean) => void;
+
   activeTool: EditorTool | undefined;
   setActiveTool: (v: EditorTool | undefined) => void;
 
@@ -40,6 +45,8 @@ export const ThreeDEditorProvider = ({
 }: ThreeDEditorProviderProps) => {
 
   const [context, setContext] = useState<any>();
+  const [volume3dVisibility, setVolume3dVisibility] = useState<boolean>(false);
+  const [slices3dVisibility, setSlices3dVisibility] = useState<boolean>(false);
   const [activeTool ,setActiveTool] = useState<EditorTool>();
   const [activeLabel, setActiveLabel] = useState<EditorLabel>();
   const [labels, setLabels] = useState<EditorLabel[]>([
@@ -115,6 +122,7 @@ export const ThreeDEditorProvider = ({
 
     // init for windows slice
     const windowsSliceData: any = {};
+    const windowsSliceArray: any = [];
     const axes = [SlicingMode.K, SlicingMode.I, SlicingMode.J];
     for (const axis of axes) {
       const windowSlice = createGenericWindow();
@@ -130,10 +138,12 @@ export const ThreeDEditorProvider = ({
           ofunc: vtkPiecewiseFunction.newInstance(),
         },
       };
-      windowsSliceData[axis] = {
+      const data = {
         windowSlice,
         imageSlice,
       }
+      windowsSliceData[axis] = data;
+      windowsSliceArray.push(data);
     }
 
     setContext({
@@ -206,6 +216,12 @@ export const ThreeDEditorProvider = ({
   const value: ThreeDEditorState = {
     editorContext: context,
     renderAllWindows,
+
+    volume3dVisibility,
+    setVolume3dVisibility,
+    slices3dVisibility,
+    setSlices3dVisibility,
+
     activeTool,
     setActiveTool,
     activeLabel,

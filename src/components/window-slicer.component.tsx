@@ -279,7 +279,6 @@ export const WindowSlicer = ({
     if (activeTool) {
       painter.setSlicingMode(axis);
       update(image, imageData, widgets, painter, handles, labelMap);
-      
     }
     if (activeTool?.type === EditorToolType.SEGMENT_BRUSH) {
       widgetManager.grabFocus(widgets.paintWidget);

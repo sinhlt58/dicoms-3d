@@ -9,6 +9,11 @@ export const ThreeDEditorNav = ({
 
 }: Props) => {
   const {
+    volume3dVisibility,
+    setVolume3dVisibility,
+    slices3dVisibility,
+    setSlices3dVisibility,
+
     activeTool,
     setActiveTool,
     activeLabel,
@@ -61,6 +66,28 @@ export const ThreeDEditorNav = ({
   return (
     <div className="w-80 h-full border-r border-blue-200 p-2">
       <div>
+        <p className="font-bold">3D Volume</p>
+        <div className="flex flex-col gap-1">
+          <div className="flex gap-2 items-center">
+            <input
+              type="checkbox"
+              checked={volume3dVisibility}
+              onChange={e => setVolume3dVisibility(e.target.checked)}
+            />
+            <span>Show 3D volume</span>
+          </div>
+          <div className="flex gap-2 items-center">
+            <input
+              type="checkbox"
+              checked={slices3dVisibility}
+              onChange={e => setSlices3dVisibility(e.target.checked)}
+            />
+            <span>Show 3D slices</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-4">
         <p className="font-bold">Segment tools</p>
         <div className="flex items-center gap-2 flex-wrap mt-2">
           {
@@ -87,7 +114,7 @@ export const ThreeDEditorNav = ({
         {
           labels.map(label => {
             return (
-              <div key={label.id} className="flex items-center gap-2 my-4">
+              <div key={label.id} className="flex items-center gap-2 my-2">
                 <input 
                   type="checkbox" 
                   checked={activeLabel?.id === label.id}

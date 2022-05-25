@@ -13,6 +13,8 @@ export const WindowVolume = () => {
   const {
     editorContext,
     renderAllWindows,
+    volume3dVisibility,
+    slices3dVisibility,
     labels,
   } = useThreeDEditorContext();
   
@@ -50,6 +52,9 @@ export const WindowVolume = () => {
 
     imageVolume.actor.getProperty().setRGBTransferFunction(0, imageVolume.cfunc);
     imageVolume.actor.getProperty().setScalarOpacity(0, imageVolume.ofunc);
+
+    console.log("mapper: ", imageVolume.mapper);
+    console.log("actor: ", imageVolume.actor);
     
     // set up filter label map
     labelFilterVolume.mapper.setInputConnection(painter.getOutputPort());
@@ -60,13 +65,13 @@ export const WindowVolume = () => {
     
     renderer.addVolume(labelFilterVolume.actor);
 
-    // renderer.addVolume(imageVolume.actor);
+    renderer.addVolume(imageVolume.actor);
 
     // add actors from slice windows
     for (const k of Object.keys(windowsSliceData)){
       const imageSlice = windowsSliceData[k].imageSlice;
-      // renderer.addActor(imageSlice.image.actor);
-      // renderer.addActor(imageSlice.labelMap.actor);
+      renderer.addActor(imageSlice.image.actor);
+      renderer.addActor(imageSlice.labelMap.actor);
     }
 
     renderer.resetCamera();
@@ -92,6 +97,19 @@ export const WindowVolume = () => {
     }
     windowVolume.renderWindow.render();
   }, [labels, editorContext]);
+
+  useEffect(() => {
+    if (!editorContext) return;
+    const {
+      windowVolume,
+      imageVolume,
+    } = editorContext;
+
+    imageVolume.actor.setVisibility(volume3dVisibility);
+
+    windowVolume.renderWindow.render();
+
+  }, [editorContext, volume3dVisibility]);
 
   return (
     <div
