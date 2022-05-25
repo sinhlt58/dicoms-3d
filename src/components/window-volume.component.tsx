@@ -90,7 +90,7 @@ export const WindowVolume = () => {
       labelFilterVolume.cfunc.addRGBPoint(label.maskValue, rgb[0], rgb[1], rgb[2]);
       labelFilterVolume.ofunc.addPoint(label.maskValue, label.opacity / 100);
     }
-    windowVolume.renderWindow.render();
+    // windowVolume.renderWindow.render();
   }, [labels, editorContext]);
 
   useEffect(() => {
