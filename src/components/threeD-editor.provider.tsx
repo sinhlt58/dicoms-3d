@@ -148,17 +148,48 @@ export const ThreeDEditorProvider = ({
       
       windowsSliceData,
     });
+
+    return () => {
+      const releaseWindow = (window: any) => {
+        window.genericRenderWindow.delete();
+        window.widgetManager.delete();
+      }
+      const releaseScenceObject = (obj: any) => {
+        if (obj.cfunc) obj.cfunc.delete();
+        if (obj.ofunc) obj.ofunc.delete();
+        obj.mapper.delete();
+        obj.actor.delete();
+      }
+      
+      imageData.delete();
+      painter.delete();
+      for (const key of Object.keys(widgets)) {
+        (widgets as any)[key].delete();
+      }
+
+      releaseScenceObject(imageVolume);
+      releaseScenceObject(labelFilterVolume);
+
+      for (const key of Object.keys(windowsSliceData)) {
+        const {windowSlice, imageSlice} = (windowsSliceData as any)[key];
+        releaseScenceObject(imageSlice.image);
+        releaseScenceObject(imageSlice.labelMap);
+        releaseWindow(windowSlice);
+      }
+
+      releaseWindow(windowVolume);
+      console.log("Released");
+    }
+
   }, [imageData]);
 
   useEffect(() => {
     if (!context) return;
 
     if (activeLabel) {
-      console.log("setLabel: ", activeLabel.maskValue)
       context.painter.setLabel(activeLabel.maskValue);
     } else {
       context.painter.setLabel(0);
-      console.log("setLabel: ", 0)
     }
 
   }, [activeLabel, context]);

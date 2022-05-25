@@ -96,7 +96,7 @@ export const WindowVolume = () => {
   return (
     <div
       ref={containerRef}
-      className="w-80 h-80 ">
+      className="w-80 h-80">
 
     </div>
   )

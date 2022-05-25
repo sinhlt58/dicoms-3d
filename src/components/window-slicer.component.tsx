@@ -81,9 +81,9 @@ export const WindowSlicer = ({
 
     // set 2D view
     camera.setParallelProjection(true);
-    const isstyle = vtkInteractorStyleImage.newInstance();
-    isstyle.setInteractionMode('IMAGE_SLICING');
-    renderWindow.getInteractor().setInteractorStyle(isstyle);
+    // const isstyle = vtkInteractorStyleImage.newInstance();
+    // isstyle.setInteractionMode('IMAGE_SLICING');
+    // renderWindow.getInteractor().setInteractorStyle(isstyle);
 
     const setCamera = (sliceMode: any, renderer: vtkRenderer, data: vtkImageData) => {
       const ijk: Vector3 = [0, 0, 0];
@@ -136,14 +136,17 @@ export const WindowSlicer = ({
         painter.endStroke();
       });
     }
+    const renderVolumeWindowAsync = async () => {
+      windowVolume.renderWindow.render();
+    }
     handles.paintHandle.onStartInteractionEvent(() => {
       painter.startStroke();
       painter.addPoint(widgets.paintWidget.getWidgetState().getTrueOrigin());
-      windowVolume.renderWindow.render();
+      // renderVolumeWindowAsync()
     });
     handles.paintHandle.onInteractionEvent(() => {
       painter.addPoint(widgets.paintWidget.getWidgetState().getTrueOrigin());
-      windowVolume.renderWindow.render();
+      // renderVolumeWindowAsync()
     });
     initializeHandle(handles.paintHandle);
     
@@ -151,7 +154,7 @@ export const WindowSlicer = ({
       const points = handles.polygonHandle.getPoints();
       painter.paintPolygon(points);
       handles.polygonHandle.updateRepresentationForRender();
-      windowVolume.renderWindow.render();
+      // renderVolumeWindowAsync();
     });
     initializeHandle(handles.polygonHandle);
 
@@ -169,27 +172,10 @@ export const WindowSlicer = ({
     image.mapper.setSlicingMode(axis);
     image.mapper.setSlice(0);
 
-
     // update panel
     const extent: any = imageData.getExtent();
     setMaxSlice(extent[axis * 2 + 1]);
     setMinSlice(extent[axis * 2]);
-
-    // const update = () => {
-    //   const slicingMode = image.mapper.getSlicingMode() % 3;
-    //   const ijk: Vector3 = [0, 0, 0];
-    //   const position: Vector3 = [0, 0, 0];
-    //   ijk[slicingMode] = image.mapper.getSlice();
-    //   imageData.indexToWorld(ijk, position);
-
-    //   widgets.paintWidget.getManipulator().setHandleOrigin(position);
-    //   widgets.polygonWidget.getManipulator().setHandleOrigin(position);
-    //   painter.setSlicingMode(slicingMode);
-
-    //   handles.paintHandle.updateRepresentationForRender();
-    //   handles.polygonHandle.updateRepresentationForRender();
-    //   labelMap.mapper.set(image.mapper.get('slice', 'slicingMode'));
-    // }
 
     image.mapper.onModified(() => {
       update(image, imageData, widgets, painter, handles, labelMap);
@@ -327,7 +313,7 @@ export const WindowSlicer = ({
           <div className='flex items-center gap-2'>
             <input 
               type="range"
-              min="0"
+              min={minSlice}
               max={maxSlice}
               value={currentSlice}
               onChange={(e) => handleSliceChanged(parseInt(e.target.value))}

@@ -17,6 +17,7 @@ function App() {
     const {image: itkImage} = res as any; 
     const vtkImage: vtkImageData = helper.convertItkToVtkImage(itkImage) as vtkImageData;
     setVtkImage(vtkImage);
+    e.target.value = null; // no need to keep this in the memory
   }
 
   return (
