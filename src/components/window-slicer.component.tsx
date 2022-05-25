@@ -2,7 +2,7 @@ import '@kitware/vtk.js/Rendering/Profiles/All';
 import vtkImageData from "@kitware/vtk.js/Common/DataModel/ImageData";
 import vtkRenderer from "@kitware/vtk.js/Rendering/Core/Renderer";
 import { Vector3 } from "@kitware/vtk.js/types";
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { SlicingMode, ViewTypes, vtkInteractorStyleImage } from "../vtk_import";
 import { useThreeDEditorContext } from "./threeD-editor.provider";
 import { EditorToolType } from './editor.models';
@@ -32,6 +32,29 @@ export const WindowSlicer = ({
   } = useThreeDEditorContext();
   const [context, setContext] = useState<any>();
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const update = useCallback((
+    image: any,
+    imageData: any,
+    widgets: any,
+    painter: any,
+    handles: any,
+    labelMap: any,
+  ) => {
+    const slicingMode = image.mapper.getSlicingMode() % 3;
+    const ijk: Vector3 = [0, 0, 0];
+    const position: Vector3 = [0, 0, 0];
+    ijk[slicingMode] = image.mapper.getSlice();
+    imageData.indexToWorld(ijk, position);
+
+    widgets.paintWidget.getManipulator().setHandleOrigin(position);
+    widgets.polygonWidget.getManipulator().setHandleOrigin(position);
+    painter.setSlicingMode(slicingMode);
+
+    handles.paintHandle.updateRepresentationForRender();
+    handles.polygonHandle.updateRepresentationForRender();
+    labelMap.mapper.set(image.mapper.get('slice', 'slicingMode'));
+  }, []);
 
   useEffect(() => {
     if (!editorContext) return;
@@ -98,8 +121,6 @@ export const WindowSlicer = ({
     image.actor.getProperty().setColorWindow(255);
     image.actor.getProperty().setColorLevel(2);
 
-    console.log(labelMap.actor.getProperty())
-
     // ----------------------------------------------------------------------------
     // Painting
     // ----------------------------------------------------------------------------
@@ -154,31 +175,34 @@ export const WindowSlicer = ({
     setMaxSlice(extent[axis * 2 + 1]);
     setMinSlice(extent[axis * 2]);
 
-    const update = () => {
-      const slicingMode = image.mapper.getSlicingMode() % 3;
-      const ijk: Vector3 = [0, 0, 0];
-      const position: Vector3 = [0, 0, 0];
-      ijk[slicingMode] = image.mapper.getSlice();
-      imageData.indexToWorld(ijk, position);
+    // const update = () => {
+    //   const slicingMode = image.mapper.getSlicingMode() % 3;
+    //   const ijk: Vector3 = [0, 0, 0];
+    //   const position: Vector3 = [0, 0, 0];
+    //   ijk[slicingMode] = image.mapper.getSlice();
+    //   imageData.indexToWorld(ijk, position);
 
-      widgets.paintWidget.getManipulator().setHandleOrigin(position);
-      widgets.polygonWidget.getManipulator().setHandleOrigin(position);
-      painter.setSlicingMode(slicingMode);
+    //   widgets.paintWidget.getManipulator().setHandleOrigin(position);
+    //   widgets.polygonWidget.getManipulator().setHandleOrigin(position);
+    //   painter.setSlicingMode(slicingMode);
 
-      handles.paintHandle.updateRepresentationForRender();
-      handles.polygonHandle.updateRepresentationForRender();
-      labelMap.mapper.set(image.mapper.get('slice', 'slicingMode'));
-    }
+    //   handles.paintHandle.updateRepresentationForRender();
+    //   handles.polygonHandle.updateRepresentationForRender();
+    //   labelMap.mapper.set(image.mapper.get('slice', 'slicingMode'));
+    // }
 
-    image.mapper.onModified(update);
+    image.mapper.onModified(() => {
+      update(image, imageData, widgets, painter, handles, labelMap);
+    });
     // trigger initial update
-    update();
+    update(image, imageData, widgets, painter, handles, labelMap);
     setCamera(axis, renderer, imageData);
 
     cameraParallelScaleRef.current = camera.getParallelScale();
     renderWindow.render();
 
     const value: any = {
+      imageData,
       widgetManager,
       widgets,
       labelMap,
@@ -192,7 +216,7 @@ export const WindowSlicer = ({
     setContext(value);
     console.log(`Done init window slice: ${axis}`);
 
-  }, [editorContext, axis]);
+  }, [editorContext, axis, update]);
 
   useEffect(() => {
     if (!context) return;
@@ -250,10 +274,20 @@ export const WindowSlicer = ({
 
   const handleContainerOnMouseEnter = () => {
     if (!context || !context.painter || !activeLabel) return;
-    const {painter, widgetManager, widgets} = context;
+    const {
+      image,
+      imageData,
+      painter,
+      widgetManager,
+      widgets,
+      handles,
+      labelMap,
+    } = context;
 
     if (activeTool) {
       painter.setSlicingMode(axis);
+      update(image, imageData, widgets, painter, handles, labelMap);
+      
     }
     if (activeTool?.type === EditorToolType.SEGMENT_BRUSH) {
       widgetManager.grabFocus(widgets.paintWidget);
