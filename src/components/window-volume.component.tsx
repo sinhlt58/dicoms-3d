@@ -15,6 +15,7 @@ export const WindowVolume = () => {
     renderAllWindows,
     volume3dVisibility,
     slices3dVisibility,
+    label3dVisibility,
     labels,
   } = useThreeDEditorContext();
   
@@ -31,7 +32,7 @@ export const WindowVolume = () => {
       windowVolume,
       imageVolume,
       labelFilterVolume,
-      windowsSliceData,
+      windowsSliceArray,
     } = editorContext;
     const {genericRenderWindow, renderer, renderWindow} = windowVolume;
     genericRenderWindow.setContainer(containerRef.current as HTMLDivElement);
@@ -52,9 +53,6 @@ export const WindowVolume = () => {
 
     imageVolume.actor.getProperty().setRGBTransferFunction(0, imageVolume.cfunc);
     imageVolume.actor.getProperty().setScalarOpacity(0, imageVolume.ofunc);
-
-    console.log("mapper: ", imageVolume.mapper);
-    console.log("actor: ", imageVolume.actor);
     
     // set up filter label map
     labelFilterVolume.mapper.setInputConnection(painter.getOutputPort());
@@ -64,21 +62,18 @@ export const WindowVolume = () => {
     // labelFilterVolume.actor.getProperty().setInterpolationTypeToLinear();
     
     renderer.addVolume(labelFilterVolume.actor);
-
     renderer.addVolume(imageVolume.actor);
 
-    // add actors from slice windows
-    for (const k of Object.keys(windowsSliceData)){
-      const imageSlice = windowsSliceData[k].imageSlice;
-      renderer.addActor(imageSlice.image.actor);
-      renderer.addActor(imageSlice.labelMap.actor);
-    }
-
     renderer.resetCamera();
-
     renderWindow.render();
 
-    console.log("done init WindowVolume");
+    const loop = setInterval(() => {
+      renderWindow.render();
+    }, 1/30*1000);
+
+    return () => {
+      clearInterval(loop);
+    }
 
   }, [editorContext]);
 
@@ -110,6 +105,36 @@ export const WindowVolume = () => {
     windowVolume.renderWindow.render();
 
   }, [editorContext, volume3dVisibility]);
+
+  useEffect(() => {
+    if (!editorContext) return;
+    const {
+      windowVolume,
+      windowsSliceArray,
+    } = editorContext;
+
+    for (const windowSliceData of windowsSliceArray) {
+      if (slices3dVisibility) {
+        windowVolume.renderer.addActor(windowSliceData.imageSlice.image.actor);
+      } else {
+        windowVolume.renderer.removeActor(windowSliceData.imageSlice.image.actor);
+      }
+    }
+    windowVolume.renderWindow.render();
+  }, [editorContext, slices3dVisibility]);
+
+  useEffect(() => {
+    if (!editorContext) return;
+    const {
+      windowVolume,
+      labelFilterVolume,
+    } = editorContext;
+
+    labelFilterVolume.actor.setVisibility(label3dVisibility);
+
+    windowVolume.renderWindow.render();
+
+  }, [editorContext, label3dVisibility]);
 
   return (
     <div

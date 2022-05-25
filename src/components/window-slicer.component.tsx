@@ -29,6 +29,7 @@ export const WindowSlicer = ({
     activeTool,
     labels,
     activeLabel,
+    slices3dVisibility,
   } = useThreeDEditorContext();
   const [context, setContext] = useState<any>();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -198,6 +199,7 @@ export const WindowSlicer = ({
       renderer,
       painter,
       camera,
+      windowVolume,
     }
     setContext(value);
     console.log(`Done init window slice: ${axis}`);
@@ -232,8 +234,10 @@ export const WindowSlicer = ({
   const handleSliceChanged = (slice: number) => {
     setCurrentSlice(slice);
     context.image.mapper.setSlice(slice);
-    // renderAllWindows();
     context.renderWindow.render();
+    // if (slices3dVisibility) {
+    //   context.windowVolume.renderWindow.render();
+    // }
   }
 
   const handleColorWindowChanged = (level: number) => {
@@ -274,6 +278,7 @@ export const WindowSlicer = ({
       widgets,
       handles,
       labelMap,
+      windowVolume,
     } = context;
 
     if (activeTool) {

@@ -13,6 +13,8 @@ export const ThreeDEditorNav = ({
     setVolume3dVisibility,
     slices3dVisibility,
     setSlices3dVisibility,
+    label3dVisibility,
+    setLabel3dVisibility,
 
     activeTool,
     setActiveTool,
@@ -83,6 +85,14 @@ export const ThreeDEditorNav = ({
               onChange={e => setSlices3dVisibility(e.target.checked)}
             />
             <span>Show 3D slices</span>
+          </div>
+          <div className="flex gap-2 items-center">
+            <input
+              type="checkbox"
+              checked={label3dVisibility}
+              onChange={e => setLabel3dVisibility(e.target.checked)}
+            />
+            <span>Show 3D labels</span>
           </div>
         </div>
       </div>

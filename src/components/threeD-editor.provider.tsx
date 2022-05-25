@@ -21,6 +21,8 @@ interface ThreeDEditorState {
   setVolume3dVisibility: (v: boolean) => void;
   slices3dVisibility: boolean;
   setSlices3dVisibility: (v: boolean) => void;
+  label3dVisibility: boolean;
+  setLabel3dVisibility: (v: boolean) => void;
 
   activeTool: EditorTool | undefined;
   setActiveTool: (v: EditorTool | undefined) => void;
@@ -47,6 +49,7 @@ export const ThreeDEditorProvider = ({
   const [context, setContext] = useState<any>();
   const [volume3dVisibility, setVolume3dVisibility] = useState<boolean>(false);
   const [slices3dVisibility, setSlices3dVisibility] = useState<boolean>(false);
+  const [label3dVisibility, setLabel3dVisibility] = useState<boolean>(false);
   const [activeTool ,setActiveTool] = useState<EditorTool>();
   const [activeLabel, setActiveLabel] = useState<EditorLabel>();
   const [labels, setLabels] = useState<EditorLabel[]>([
@@ -157,6 +160,7 @@ export const ThreeDEditorProvider = ({
       labelFilterVolume,
       
       windowsSliceData,
+      windowsSliceArray,
     });
 
     return () => {
@@ -180,11 +184,10 @@ export const ThreeDEditorProvider = ({
       releaseScenceObject(imageVolume);
       releaseScenceObject(labelFilterVolume);
 
-      for (const key of Object.keys(windowsSliceData)) {
-        const {windowSlice, imageSlice} = (windowsSliceData as any)[key];
-        releaseScenceObject(imageSlice.image);
-        releaseScenceObject(imageSlice.labelMap);
-        releaseWindow(windowSlice);
+      for (const windowSliceData of windowsSliceArray) {
+        releaseScenceObject(windowSliceData.imageSlice.image);
+        releaseScenceObject(windowSliceData.imageSlice.labelMap);
+        releaseWindow(windowSliceData.windowSlice);
       }
 
       releaseWindow(windowVolume);
@@ -206,10 +209,10 @@ export const ThreeDEditorProvider = ({
 
   const renderAllWindows = () => {
     if (!context) return;
-    const {windowVolume, windowsSliceData} = context;
+    const {windowVolume, windowsSliceArray} = context;
     windowVolume.renderWindow.render();
-    for (const k of Object.keys(windowsSliceData)) {
-      windowsSliceData[k].windowSlice.renderWindow.render();
+    for (const windowSliceData of windowsSliceArray) {
+      windowSliceData.windowSlice.renderWindow.render();
     }
   }
   
@@ -221,6 +224,8 @@ export const ThreeDEditorProvider = ({
     setVolume3dVisibility,
     slices3dVisibility,
     setSlices3dVisibility,
+    label3dVisibility,
+    setLabel3dVisibility,
 
     activeTool,
     setActiveTool,
