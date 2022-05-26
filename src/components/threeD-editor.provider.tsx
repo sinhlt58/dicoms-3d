@@ -237,13 +237,29 @@ export const ThreeDEditorProvider = ({
 
   return (
     <ThreeDEditorContext.Provider value={value}>
-      <div className="h-full w-full flex">
+      <div className="flex w-full h-full">
         <ThreeDEditorNav />
-        <div className="flex-auto flex flex-wrap gap-4 p-2">
-          <WindowVolume />
-          <WindowSlicer axis={SlicingMode.K} />
-          <WindowSlicer axis={SlicingMode.I} />
-          <WindowSlicer axis={SlicingMode.J} />
+        <div className="flex-auto self-center p-1"
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(2, 1fr)",
+            gridTemplateRows: "50% 50%",
+            height: `calc(100vh - 80px)`,
+            gridGap: "2px",
+          }}
+        >
+          <div className="">
+            <WindowVolume />
+          </div>
+          <div className="">
+            <WindowSlicer axis={SlicingMode.K} />
+          </div>
+          <div className="">
+            <WindowSlicer axis={SlicingMode.I} />
+          </div>
+          <div className="">
+            <WindowSlicer axis={SlicingMode.J} /> 
+          </div>
         </div>
       </div>
     </ThreeDEditorContext.Provider>

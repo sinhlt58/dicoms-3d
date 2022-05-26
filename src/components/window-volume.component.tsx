@@ -9,7 +9,6 @@ interface Props {
   imageData: vtkImageData,
 }
 export const WindowVolume = () => {
-
   const {
     editorContext,
     renderAllWindows,
@@ -23,7 +22,7 @@ export const WindowVolume = () => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!editorContext) return;
+    if (!editorContext || !containerRef.current) return;
 
     const {
       imageData,
@@ -35,6 +34,8 @@ export const WindowVolume = () => {
       windowsSliceArray,
     } = editorContext;
     const {genericRenderWindow, renderer, renderWindow} = windowVolume;
+    console.log(containerRef.current.clientWidth)
+    console.log(containerRef.current.clientHeight)
     genericRenderWindow.setContainer(containerRef.current as HTMLDivElement);
     genericRenderWindow.resize();
 
@@ -139,13 +140,8 @@ export const WindowVolume = () => {
   return (
     <div
       ref={containerRef}
-      className=""
-      style={{
-        width: "400px",
-        height: "400px",
-      }}
+      className="w-full h-full flex items-center justify-center"
     >
-
     </div>
   )
 }

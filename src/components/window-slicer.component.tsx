@@ -58,7 +58,7 @@ export const WindowSlicer = ({
   }, []);
 
   useEffect(() => {
-    if (!editorContext) return;
+    if (!editorContext || !containerRef.current) return;
     const {
       windowVolume,
       imageData,
@@ -78,6 +78,7 @@ export const WindowSlicer = ({
     const {image, labelMap} = imageSlice;
 
     genericRenderWindow.setContainer(containerRef.current as HTMLDivElement);
+    genericRenderWindow.resize();
     widgetManager.setRenderer(renderer);
 
     // set 2D view
@@ -305,69 +306,63 @@ export const WindowSlicer = ({
   }
 
   return (
-    <Fragment>
-      <div className='relative bg-red-300'
-        style={{
-          width: "400px",
-          height: "400px",
-        }}
-        onMouseEnter={() => handleContainerOnMouseEnter()}
-        onMouseLeave={() => handleContainerOnMouseLeave()}
-        onMouseMove={() => handleContainerOnMouseMove()}
+    <div className='w-full h-full relative'
+      onMouseEnter={() => handleContainerOnMouseEnter()}
+      onMouseLeave={() => handleContainerOnMouseLeave()}
+      onMouseMove={() => handleContainerOnMouseMove()}
+    >
+      <div
+        ref={containerRef}
+        className="w-full h-full relative"
       >
-        <div
-          ref={containerRef}
-          className="relative bg-rose-300"
-        >
-          <span className="absolute top-1 right-1 text-lg font-bold text-white">{axis}</span>
+        <span className="absolute top-1 right-1 text-lg font-bold text-white">{axis}</span>
+      </div>
+      <div className='absolute top-1 left-1 flex flex-col gap-2 p-2 border rounded bg-white'
+      >
+        <div className='flex items-center gap-2'>
+          <input 
+            type="range"
+            min={minSlice}
+            max={maxSlice}
+            value={currentSlice}
+            onChange={(e) => handleSliceChanged(parseInt(e.target.value))}
+          />
+          <span>Slice: {currentSlice}/{maxSlice}</span>
         </div>
-        <div className='absolute top-1 left-1 flex flex-col gap-2 p-2 border rounded bg-white'
-        >
-          <div className='flex items-center gap-2'>
-            <input 
-              type="range"
-              min={minSlice}
-              max={maxSlice}
-              value={currentSlice}
-              onChange={(e) => handleSliceChanged(parseInt(e.target.value))}
-            />
-            <span>Slice: {currentSlice}/{maxSlice}</span>
-          </div>
-          <div className='flex items-center gap-2 hidden'>
-            <input 
-              type="range"
-              min="0"
-              max="255"
-              value={colorWindow}
-              step="2"
-              onChange={(e) => handleColorWindowChanged(parseInt(e.target.value))}
-            />
-            <span>Window level: {colorWindow}</span>
-          </div>
-          <div className='flex items-center gap-2 hidden'>
-            <input
-              type="range"
-              min="0"
-              max="255"
-              value={colorLevel}
-              step="2"
-              onChange={(e) => handleColorLevelChanged(parseInt(e.target.value))}
-            />
-            <span>Color level: {colorLevel}</span>
-          </div>
-          <div className='flex items-center gap-2'>
-            <input
-              type="range"
-              min="1"
-              max="200"
-              value={cameraZoom}
-              step="1"
-              onChange={(e) => handleCameraZoomChanged(parseInt(e.target.value))}
-            />
-            <span>Zoom: {cameraZoom}</span>
-          </div>
+        <div className='flex items-center gap-2 hidden'>
+          <input 
+            type="range"
+            min="0"
+            max="255"
+            value={colorWindow}
+            step="2"
+            onChange={(e) => handleColorWindowChanged(parseInt(e.target.value))}
+          />
+          <span>Window level: {colorWindow}</span>
+        </div>
+        <div className='flex items-center gap-2 hidden'>
+          <input
+            type="range"
+            min="0"
+            max="255"
+            value={colorLevel}
+            step="2"
+            onChange={(e) => handleColorLevelChanged(parseInt(e.target.value))}
+          />
+          <span>Color level: {colorLevel}</span>
+        </div>
+        <div className='flex items-center gap-2'>
+          <input
+            type="range"
+            min="1"
+            max="200"
+            value={cameraZoom}
+            step="1"
+            onChange={(e) => handleCameraZoomChanged(parseInt(e.target.value))}
+          />
+          <span>Zoom: {cameraZoom}</span>
         </div>
       </div>
-    </Fragment>
+    </div>
   )
 }

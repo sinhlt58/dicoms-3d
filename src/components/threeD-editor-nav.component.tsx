@@ -66,7 +66,11 @@ export const ThreeDEditorNav = ({
   }
 
   return (
-    <div className="w-80 h-full border-r border-blue-200 p-2">
+    <div className="border-r-2 border-grey-200 p-2"
+      style={{
+        width: "280px"
+      }}
+    >
       <div>
         <p className="font-bold">3D Volume</p>
         <div className="flex flex-col gap-1">

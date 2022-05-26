@@ -21,21 +21,17 @@ function App() {
   }
 
   return (
-    <div className="w-full h-full flex flex-col">
-      <div className="grid grid-cols-12">
-        <div className="col-span-12 border-t border-b h-20 bg-red-50">
-          <input
-            type="file"
-            onChange={handleFileChanged}
-            multiple
-            onClick={(e: any) => e.target.value = null}
-          />
-        </div>
+    <div className="flex flex-col h-full">
+      <div className="flex p-4 border-b-2 border-gray-200 bg-gray-100">
+        <input
+          type="file"
+          onChange={handleFileChanged}
+          multiple
+          onClick={(e: any) => e.target.value = null}
+        />
       </div>
-      <div className="grid grid-cols-12 h-full flex-auto ">
-        <div className="col-span-12">
-          {vtkImage && <ThreeDEditorProvider imageData={vtkImage} />}
-        </div>
+      <div className='w-full flex-auto'>
+        {vtkImage && <ThreeDEditorProvider imageData={vtkImage} />}
       </div>
     </div>
   );
