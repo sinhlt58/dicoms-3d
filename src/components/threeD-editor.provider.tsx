@@ -7,7 +7,7 @@ import vtkVolume from "@kitware/vtk.js/Rendering/Core/Volume";
 import vtkVolumeMapper from "@kitware/vtk.js/Rendering/Core/VolumeMapper";
 import vtkGenericRenderWindow from "@kitware/vtk.js/Rendering/Misc/GenericRenderWindow";
 import { createContext, useContext, useEffect, useState } from "react";
-import { SlicingMode, vtkPaintFilter, vtkPaintWidget, vtkSplineWidget, vtkWidgetManager } from "../vtk_import";
+import { SlicingMode, vtkPaintFilter, vtkPaintWidget, vtkResliceCursorWidget, vtkSplineWidget, vtkWidgetManager } from "../vtk_import";
 import { EditorLabel, EditorTool } from "./editor.models";
 import { ThreeDEditorNav } from "./threeD-editor-nav.component";
 import { WindowSlicer } from "./window-slicer.component";
@@ -96,13 +96,22 @@ export const ThreeDEditorProvider = ({
     }
  
     const painter = vtkPaintFilter.newInstance();
-    const widgets = {
+    const widgets: any = {
       paintWidget: vtkPaintWidget.newInstance(),
       polygonWidget: vtkSplineWidget.newInstance({
         resetAfterPointPlacement: true,
         resolution: 1,
       }),
+      resliceCursorWidget: vtkResliceCursorWidget.newInstance(),
     };
+    const resliceCursorWidgetState = widgets.resliceCursorWidget.getWidgetState();
+    widgets.resliceCursorWidgetState = resliceCursorWidgetState;
+    resliceCursorWidgetState.setKeepOrthogonality(true);
+    resliceCursorWidgetState.setOpacity(0.6);
+    resliceCursorWidgetState.setSphereRadius(10 * window.devicePixelRatio);
+    resliceCursorWidgetState.setLineThickness(5);
+    widgets.resliceCursorWidget.setImage(imageData);
+
     painter.setBackgroundImage(imageData);
     const radius = 20;
     painter.setRadius(radius);

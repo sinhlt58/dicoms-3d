@@ -3,7 +3,7 @@ import vtkImageData from "@kitware/vtk.js/Common/DataModel/ImageData";
 import vtkRenderer from "@kitware/vtk.js/Rendering/Core/Renderer";
 import { Vector3 } from "@kitware/vtk.js/types";
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
-import { SlicingMode, ViewTypes, vtkInteractorStyleImage } from "../vtk_import";
+import { CaptureOn, SlicingMode, ViewTypes, vtkInteractorStyleImage, xyzToViewType } from "../vtk_import";
 import { useThreeDEditorContext } from "./threeD-editor.provider";
 import { EditorToolType } from './editor.models';
 import { hexToRgb } from '../utils/utils';
@@ -129,6 +129,7 @@ export const WindowSlicer = ({
     const  handles = {
       paintHandle: widgetManager.addWidget(widgets.paintWidget, ViewTypes.SLICE),
       polygonHandle: widgetManager.addWidget(widgets.polygonWidget, ViewTypes.SLICE),
+      resliceCursorHandle: widgetManager.addWidget(widgets.resliceCursorWidget, xyzToViewType[axis]),
     };
     const initializeHandle = (handle: any) => {
       handle.onStartInteractionEvent(() => {
@@ -151,6 +152,10 @@ export const WindowSlicer = ({
       // renderVolumeWindowAsync()
     });
     initializeHandle(handles.paintHandle);
+    // reslice cursor
+    handles.resliceCursorHandle.getRepresentations()[0].setScaleInPixels(true);
+    // handles.resliceCursorHandle.getRepresentations()[0].setRotationHandlePosition(0.75);
+    widgetManager.setCaptureOn(CaptureOn.MOUSE_MOVE);
     
     handles.polygonHandle.onEndInteractionEvent(() => {
       const points = handles.polygonHandle.getPoints();
