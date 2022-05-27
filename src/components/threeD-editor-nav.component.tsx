@@ -66,7 +66,7 @@ export const ThreeDEditorNav = ({
   }
 
   return (
-    <div className="border-r-2 border-grey-200 p-2"
+    <div className="border-r-2 border-grey-200 p-4"
       style={{
         width: "280px"
       }}
