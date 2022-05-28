@@ -261,13 +261,13 @@ export const ThreeDEditorProvider = ({
             <WindowVolume />
           </div>
           <div className="">
-            <WindowSlicer axis={SlicingMode.K} />
-          </div>
-          <div className="">
             <WindowSlicer axis={SlicingMode.I} />
           </div>
           <div className="">
-            <WindowSlicer axis={SlicingMode.J} /> 
+            <WindowSlicer axis={SlicingMode.J} />
+          </div>
+          <div className="">
+            <WindowSlicer axis={SlicingMode.K} /> 
           </div>
         </div>
       </div>

@@ -139,17 +139,12 @@ export const WindowSlicer = ({
         painter.endStroke();
       });
     }
-    const renderVolumeWindowAsync = async () => {
-      windowVolume.renderWindow.render();
-    }
     handles.paintHandle.onStartInteractionEvent(() => {
       painter.startStroke();
       painter.addPoint(widgets.paintWidget.getWidgetState().getTrueOrigin());
-      // renderVolumeWindowAsync()
     });
     handles.paintHandle.onInteractionEvent(() => {
       painter.addPoint(widgets.paintWidget.getWidgetState().getTrueOrigin());
-      // renderVolumeWindowAsync()
     });
     initializeHandle(handles.paintHandle);
     // reslice cursor
@@ -161,7 +156,6 @@ export const WindowSlicer = ({
       const points = handles.polygonHandle.getPoints();
       painter.paintPolygon(points);
       handles.polygonHandle.updateRepresentationForRender();
-      // renderVolumeWindowAsync();
     });
     initializeHandle(handles.polygonHandle);
 
@@ -269,8 +263,12 @@ export const WindowSlicer = ({
   const updateHandlesVisibility = (visible: boolean) => {
     if (!context) return;
     const {handles, renderWindow} = context;
-    handles.paintHandle.setVisibility(visible);
-    handles.polygonHandle.setVisibility(visible);
+    if (activeTool?.type === EditorToolType.SEGMENT_BRUSH){
+      handles.paintHandle.setVisibility(visible);
+    }
+    if (activeTool?.type === EditorToolType.SEGMENT_POLY){
+      // handles.polygonHandle.setVisibility(visible);
+    }
     renderWindow.render();
   }
 
@@ -302,8 +300,9 @@ export const WindowSlicer = ({
   const handleContainerOnMouseLeave = () => {
     if (!context) return;
     const {widgetManager} = context;
-    widgetManager.releaseFocus();
-    
+    if (activeTool) {
+      widgetManager.releaseFocus();
+    }
     updateHandlesVisibility(false);
   }
 
