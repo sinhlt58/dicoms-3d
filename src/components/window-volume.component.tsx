@@ -34,8 +34,6 @@ export const WindowVolume = () => {
       windowsSliceArray,
     } = editorContext;
     const {genericRenderWindow, renderer, renderWindow} = windowVolume;
-    console.log(containerRef.current.clientWidth)
-    console.log(containerRef.current.clientHeight)
     genericRenderWindow.setContainer(containerRef.current as HTMLDivElement);
     genericRenderWindow.resize();
 
@@ -70,7 +68,7 @@ export const WindowVolume = () => {
 
     const loop = setInterval(() => {
       renderWindow.render();
-    }, 1/30*1000);
+    }, 1/60*1000);
 
     return () => {
       clearInterval(loop);
@@ -81,7 +79,6 @@ export const WindowVolume = () => {
   useEffect(() => {
     if (!editorContext) return;
     const {
-      windowVolume,
       labelFilterVolume,
     } = editorContext;
 
@@ -91,19 +88,15 @@ export const WindowVolume = () => {
       labelFilterVolume.cfunc.addRGBPoint(label.maskValue, rgb[0], rgb[1], rgb[2]);
       labelFilterVolume.ofunc.addPoint(label.maskValue, label.opacity / 100);
     }
-    // windowVolume.renderWindow.render();
   }, [labels, editorContext]);
 
   useEffect(() => {
     if (!editorContext) return;
     const {
-      windowVolume,
       imageVolume,
     } = editorContext;
 
     imageVolume.actor.setVisibility(volume3dVisibility);
-
-    windowVolume.renderWindow.render();
 
   }, [editorContext, volume3dVisibility]);
 
@@ -121,20 +114,15 @@ export const WindowVolume = () => {
         windowVolume.renderer.removeActor(windowSliceData.imageSlice.image.actor);
       }
     }
-    windowVolume.renderWindow.render();
   }, [editorContext, slices3dVisibility]);
 
   useEffect(() => {
     if (!editorContext) return;
     const {
-      windowVolume,
       labelFilterVolume,
     } = editorContext;
 
     labelFilterVolume.actor.setVisibility(label3dVisibility);
-
-    windowVolume.renderWindow.render();
-
   }, [editorContext, label3dVisibility]);
 
   return (

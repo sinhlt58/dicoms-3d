@@ -139,6 +139,7 @@ export const WindowSlicer = ({
         painter.endStroke();
       });
     }
+    // paint
     handles.paintHandle.onStartInteractionEvent(() => {
       painter.startStroke();
       painter.addPoint(widgets.paintWidget.getWidgetState().getTrueOrigin());
@@ -147,19 +148,29 @@ export const WindowSlicer = ({
       painter.addPoint(widgets.paintWidget.getWidgetState().getTrueOrigin());
     });
     initializeHandle(handles.paintHandle);
-    // reslice cursor
-    handles.resliceCursorHandle.getRepresentations()[0].setScaleInPixels(true);
-    // handles.resliceCursorHandle.getRepresentations()[0].setRotationHandlePosition(0.75);
-    widgetManager.setCaptureOn(CaptureOn.MOUSE_MOVE);
-    
+    // poly
     handles.polygonHandle.onEndInteractionEvent(() => {
       const points = handles.polygonHandle.getPoints();
       painter.paintPolygon(points);
       handles.polygonHandle.updateRepresentationForRender();
     });
     initializeHandle(handles.polygonHandle);
-
     handles.polygonHandle.setOutputBorder(true);
+    // reslice cursor
+    handles.resliceCursorHandle.getRepresentations()[0].setScaleInPixels(true);
+    // handles.resliceCursorHandle.getRepresentations()[0].setRotationHandlePosition(0.75);
+    widgetManager.setCaptureOn(CaptureOn.MOUSE_MOVE);
+    handles.resliceCursorHandle.onInteractionEvent(({
+      computeFocalPointOffset,
+      canUpdateFocalPoint,
+    }: any) => {
+      const widgetState = widgets.resliceCursorWidget.getWidgetState();
+      console.log(widgetState)
+      const center = widgetState.getCenter();
+      const centerIJK = imageData.worldToIndex(center);
+      console.log("center: ", center)
+      console.log("centerIJK: ", centerIJK)
+    });
 
     ready();
 
@@ -235,9 +246,6 @@ export const WindowSlicer = ({
     setCurrentSlice(slice);
     context.image.mapper.setSlice(slice);
     context.renderWindow.render();
-    // if (slices3dVisibility) {
-    //   context.windowVolume.renderWindow.render();
-    // }
   }
 
   const handleColorWindowChanged = (level: number) => {
