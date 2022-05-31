@@ -149,21 +149,54 @@ export const WindowSlicer = forwardRef(({axis}: Props, ref: any) => {
     // handles.resliceCursorHandle.getRepresentations()[0].setRotationHandlePosition(0.75);
     widgetManager.setCaptureOn(CaptureOn.MOUSE_MOVE);
 
-    // listen to other slice windows too
-    for (const sliceData of windowsSliceArray) {
-      sliceData.handles.resliceCursorHandle.onInteractionEvent(({
-        computeFocalPointOffset,
-        canUpdateFocalPoint,
-      }: any) => {
-        const widgetState = widgets.resliceCursorWidget.getWidgetState();
-        const center = widgetState.getCenter();
-        let slice = image.mapper.getSliceAtPosition(center);
-        slice = Math.round(slice)
-        image.mapper.setSlice(slice);
-        setCurrentSlice(slice);
-        console.log(`axis: ${axis}, slice: ${slice}`);
-      });
-    }
+    handles.resliceCursorHandle.onStartInteractionEvent(() => {
+      const widgetState = widgets.resliceCursorWidget.getWidgetState();
+      let center = widgetState.getCenter();
+      console.log(widgets.resliceCursorWidget)
+      console.log(widgetState)
+      console.log("Before center: ", center);
+      const ijkCenter = imageData.worldToIndex(center);
+      ijkCenter[axis] = image.mapper.getSlice();
+      // move center
+      center = imageData.indexToWorld(ijkCenter);
+      // set cursor center to new position
+      widgetState.setCenter(center);
+      widgetState.modified();
+      // for (const sliceData of windowsSliceArray) {
+      //   sliceData.handles.resliceCursorHandle.updateRepresentationForRender();
+      // }
+      
+      // set other slices to cursor new position
+      console.log("After center: ", center);
+    });
+    handles.resliceCursorHandle.onInteractionEvent(({
+      computeFocalPointOffset,
+      canUpdateFocalPoint,
+    }: any) => {
+      const widgetState = widgets.resliceCursorWidget.getWidgetState();
+      const center = widgetState.getCenter();
+      let slice = image.mapper.getSliceAtPosition(center);
+      slice = Math.round(slice)
+      image.mapper.setSlice(slice);
+      setCurrentSlice(slice);
+      // console.log(`axis: ${axis}, slice: ${slice}`);
+    });
+    // // listen to other slice windows too
+    // for (const sliceData of windowsSliceArray) {
+    //   sliceData.handles.resliceCursorHandle.onInteractionEvent(({
+    //     computeFocalPointOffset,
+    //     canUpdateFocalPoint,
+    //   }: any) => {
+    //     const widgetState = widgets.resliceCursorWidget.getWidgetState();
+    //     const center = widgetState.getCenter();
+    //     console.log("Center: ", center)
+    //     let slice = image.mapper.getSliceAtPosition(center);
+    //     slice = Math.round(slice)
+    //     image.mapper.setSlice(slice);
+    //     setCurrentSlice(slice);
+    //     // console.log(`axis: ${axis}, slice: ${slice}`);
+    //   });
+    // }
 
     ready();
 
