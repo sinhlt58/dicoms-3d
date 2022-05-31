@@ -178,6 +178,7 @@ export const ThreeDEditorProvider = ({
         windowSlice,
         imageSlice,
         handles,
+        axis,
       }
       windowsSliceData[axis] = data;
       windowsSliceArray.push(data);

@@ -61,8 +61,8 @@ export const WindowSlicer = forwardRef(({axis}: Props, ref: any) => {
       imageData,
       painter,
       widgets,
-      // change later corresponding to axis
       windowsSliceData,
+      windowsSliceArray,
     } = editorContext;
     const {windowSlice, imageSlice, handles} = windowsSliceData[axis];
     const {
@@ -148,14 +148,22 @@ export const WindowSlicer = forwardRef(({axis}: Props, ref: any) => {
     handles.resliceCursorHandle.getRepresentations()[0].setScaleInPixels(true);
     // handles.resliceCursorHandle.getRepresentations()[0].setRotationHandlePosition(0.75);
     widgetManager.setCaptureOn(CaptureOn.MOUSE_MOVE);
-    handles.resliceCursorHandle.onInteractionEvent(({
-      computeFocalPointOffset,
-      canUpdateFocalPoint,
-    }: any) => {
-      const widgetState = widgets.resliceCursorWidget.getWidgetState();
-      const center = widgetState.getCenter();
-      const centerIJK = imageData.worldToIndex(center);
-    });
+
+    // listen to other slice windows too
+    for (const sliceData of windowsSliceArray) {
+      sliceData.handles.resliceCursorHandle.onInteractionEvent(({
+        computeFocalPointOffset,
+        canUpdateFocalPoint,
+      }: any) => {
+        const widgetState = widgets.resliceCursorWidget.getWidgetState();
+        const center = widgetState.getCenter();
+        let slice = image.mapper.getSliceAtPosition(center);
+        slice = Math.round(slice)
+        image.mapper.setSlice(slice);
+        setCurrentSlice(slice);
+        console.log(`axis: ${axis}, slice: ${slice}`);
+      });
+    }
 
     ready();
 
@@ -183,6 +191,14 @@ export const WindowSlicer = forwardRef(({axis}: Props, ref: any) => {
 
     cameraParallelScaleRef.current = camera.getParallelScale();
     renderWindow.render();
+
+    const widgetState = widgets.resliceCursorWidget.getWidgetState();
+    const center = widgetState.getCenter();
+    let slice = image.mapper.getSliceAtPosition(center);
+    slice = Math.round(slice)
+    // image.mapper.setSlice(slice);
+    // setCurrentSlice(slice);
+    console.log(`axis: ${axis}, slice: ${slice}`);
 
     const value: any = {
       imageData,
