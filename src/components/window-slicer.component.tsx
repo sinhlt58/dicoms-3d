@@ -2,7 +2,7 @@ import '@kitware/vtk.js/Rendering/Profiles/All';
 import vtkImageData from "@kitware/vtk.js/Common/DataModel/ImageData";
 import vtkRenderer from "@kitware/vtk.js/Rendering/Core/Renderer";
 import { Vector3 } from "@kitware/vtk.js/types";
-import { Fragment, useCallback, useEffect, useRef, useState } from "react";
+import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
 import { CaptureOn, SlicingMode, ViewTypes, vtkInteractorStyleImage, xyzToViewType } from "../vtk_import";
 import { useThreeDEditorContext } from "./threeD-editor.provider";
 import { EditorToolType } from './editor.models';
@@ -11,9 +11,7 @@ import { hexToRgb } from '../utils/utils';
 interface Props {
   axis: any,
 }
-export const WindowSlicer = ({
-  axis,
-}: Props) => {
+export const WindowSlicer = forwardRef(({axis}: Props, ref: any) => {
   const [currentSlice, setCurrentSlice] = useState(0);
   const [maxSlice, setMaxSlice] = useState(0);
   const [minSlice, setMinSlice] = useState(0);
@@ -32,7 +30,6 @@ export const WindowSlicer = ({
     slices3dVisibility,
   } = useThreeDEditorContext();
   const [context, setContext] = useState<any>();
-  const containerRef = useRef<HTMLDivElement>(null);
 
   const update = useCallback((
     image: any,
@@ -58,7 +55,7 @@ export const WindowSlicer = ({
   }, []);
 
   useEffect(() => {
-    if (!editorContext || !containerRef.current) return;
+    if (!editorContext || !ref.current) return;
     const {
       windowVolume,
       imageData,
@@ -67,7 +64,7 @@ export const WindowSlicer = ({
       // change later corresponding to axis
       windowsSliceData,
     } = editorContext;
-    const {windowSlice, imageSlice} = windowsSliceData[axis];
+    const {windowSlice, imageSlice, handles} = windowsSliceData[axis];
     const {
       genericRenderWindow,
       renderer,
@@ -76,10 +73,6 @@ export const WindowSlicer = ({
       widgetManager,
     } = windowSlice;
     const {image, labelMap} = imageSlice;
-
-    genericRenderWindow.setContainer(containerRef.current as HTMLDivElement);
-    genericRenderWindow.resize();
-    widgetManager.setRenderer(renderer);
 
     // set 2D view
     camera.setParallelProjection(true);
@@ -126,11 +119,6 @@ export const WindowSlicer = ({
     // ----------------------------------------------------------------------------
     // Painting
     // ----------------------------------------------------------------------------
-    const  handles = {
-      paintHandle: widgetManager.addWidget(widgets.paintWidget, ViewTypes.SLICE),
-      polygonHandle: widgetManager.addWidget(widgets.polygonWidget, ViewTypes.SLICE),
-      resliceCursorHandle: widgetManager.addWidget(widgets.resliceCursorWidget, xyzToViewType[axis]),
-    };
     const initializeHandle = (handle: any) => {
       handle.onStartInteractionEvent(() => {
         painter.startStroke();
@@ -165,11 +153,8 @@ export const WindowSlicer = ({
       canUpdateFocalPoint,
     }: any) => {
       const widgetState = widgets.resliceCursorWidget.getWidgetState();
-      console.log(widgetState)
       const center = widgetState.getCenter();
       const centerIJK = imageData.worldToIndex(center);
-      console.log("center: ", center)
-      console.log("centerIJK: ", centerIJK)
     });
 
     ready();
@@ -215,7 +200,7 @@ export const WindowSlicer = ({
     setContext(value);
     console.log(`Done init window slice: ${axis}`);
 
-  }, [editorContext, axis, update]);
+  }, [editorContext, ref, axis, update]);
 
   useEffect(() => {
     if (!context) return;
@@ -324,7 +309,7 @@ export const WindowSlicer = ({
       onMouseMove={() => handleContainerOnMouseMove()}
     >
       <div
-        ref={containerRef}
+        ref={ref}
         className="w-full h-full relative"
       >
         <span className="absolute top-1 right-1 text-lg font-bold text-white">{axis}</span>
@@ -377,4 +362,4 @@ export const WindowSlicer = ({
       </div>
     </div>
   )
-}
+})

@@ -6,8 +6,8 @@ import vtkImageSlice from "@kitware/vtk.js/Rendering/Core/ImageSlice";
 import vtkVolume from "@kitware/vtk.js/Rendering/Core/Volume";
 import vtkVolumeMapper from "@kitware/vtk.js/Rendering/Core/VolumeMapper";
 import vtkGenericRenderWindow from "@kitware/vtk.js/Rendering/Misc/GenericRenderWindow";
-import { createContext, useContext, useEffect, useState } from "react";
-import { SlicingMode, vtkPaintFilter, vtkPaintWidget, vtkResliceCursorWidget, vtkSplineWidget, vtkWidgetManager } from "../vtk_import";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { SlicingMode, ViewTypes, vtkPaintFilter, vtkPaintWidget, vtkResliceCursorWidget, vtkSplineWidget, vtkWidgetManager, xyzToViewType } from "../vtk_import";
 import { EditorLabel, EditorTool } from "./editor.models";
 import { ThreeDEditorNav } from "./threeD-editor-nav.component";
 import { WindowSlicer } from "./window-slicer.component";
@@ -75,9 +75,13 @@ export const ThreeDEditorProvider = ({
       maskValue: 3,
     },
   ]);
+  const sliceIRef = useRef<HTMLDivElement>();
+  const sliceJRef = useRef<HTMLDivElement>();
+  const sliceKRef = useRef<HTMLDivElement>();
 
   useEffect(() => {
-    if (!imageData) return;
+    if (!imageData || 
+      !sliceIRef.current || !sliceJRef.current || !sliceKRef.current) return;
 
     const createGenericWindow = () => {
       const genericRenderWindow = vtkGenericRenderWindow.newInstance();
@@ -138,6 +142,26 @@ export const ThreeDEditorProvider = ({
     const axes = [SlicingMode.K, SlicingMode.I, SlicingMode.J];
     for (const axis of axes) {
       const windowSlice = createGenericWindow();
+      let sliceRef;
+      if (axis === SlicingMode.I) {
+        sliceRef = sliceIRef;
+      }
+      if (axis === SlicingMode.J) {
+        sliceRef = sliceJRef;
+      }
+      if (axis === SlicingMode.K) {
+        sliceRef = sliceKRef;
+      }
+      windowSlice.genericRenderWindow.setContainer(sliceRef?.current as HTMLDivElement);
+      windowSlice.genericRenderWindow.resize();
+      windowSlice.widgetManager.setRenderer(windowSlice.renderer);
+      // init handle widgets
+      const  handles = {
+        paintHandle: windowSlice.widgetManager.addWidget(widgets.paintWidget, ViewTypes.SLICE),
+        polygonHandle: windowSlice.widgetManager.addWidget(widgets.polygonWidget, ViewTypes.SLICE),
+        resliceCursorHandle: windowSlice.widgetManager.addWidget(widgets.resliceCursorWidget, xyzToViewType[axis]),
+      };
+
       const imageSlice = {
         image: {
           mapper: vtkImageMapper.newInstance() as any,
@@ -153,6 +177,7 @@ export const ThreeDEditorProvider = ({
       const data = {
         windowSlice,
         imageSlice,
+        handles,
       }
       windowsSliceData[axis] = data;
       windowsSliceArray.push(data);
@@ -261,13 +286,13 @@ export const ThreeDEditorProvider = ({
             <WindowVolume />
           </div>
           <div className="">
-            <WindowSlicer axis={SlicingMode.I} />
+            <WindowSlicer ref={sliceIRef} axis={SlicingMode.I} />
           </div>
           <div className="">
-            <WindowSlicer axis={SlicingMode.J} />
+            <WindowSlicer ref={sliceJRef} axis={SlicingMode.J} />
           </div>
           <div className="">
-            <WindowSlicer axis={SlicingMode.K} /> 
+            <WindowSlicer ref={sliceKRef} axis={SlicingMode.K} /> 
           </div>
         </div>
       </div>
