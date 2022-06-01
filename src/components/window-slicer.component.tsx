@@ -44,9 +44,10 @@ export const WindowSlicer = forwardRef(({axis}: Props, ref: any) => {
     const slicingMode = image.mapper.getSlicingMode() % 3;
     const ijk: Vector3 = [0, 0, 0];
     const position: Vector3 = [0, 0, 0];
-    ijk[slicingMode] = image.mapper.getSlice();
+    const slice = image.mapper.getSlice()
+    ijk[slicingMode] = slice;
     imageData.indexToWorld(ijk, position);
-
+    setCurrentSlice(slice);
     widgets.paintWidget.getManipulator().setHandleOrigin(position);
     widgets.polygonWidget.getManipulator().setHandleOrigin(position);
     painter.setSlicingMode(slicingMode);
@@ -82,7 +83,7 @@ export const WindowSlicer = forwardRef(({axis}: Props, ref: any) => {
     let slice = image.mapper.getSliceAtPosition(center);
     slice = Math.round(slice);
     image.mapper.setSlice(slice);
-    setCurrentSlice(slice);
+    
   }, []);
 
   useEffect(() => {
@@ -180,20 +181,6 @@ export const WindowSlicer = forwardRef(({axis}: Props, ref: any) => {
 
     widgetManager.setCaptureOn(CaptureOn.MOUSE_MOVE);
 
-    handles.resliceCursorHandle.onActivateHandle(() => {
-      moveResliceCursorToSlice(axis, widgets, imageData, image);
-      for (const sliceData of windowsSliceArray) {
-        if (sliceData.axis !== axis) {
-          sliceData.windowSlice.renderWindow.render();
-        }
-      }
-    });
-    handles.resliceCursorHandle.onStartInteractionEvent(() => {
-      
-    });
-    handles.resliceCursorHandle.onEndInteractionEvent(() => {
-      isFirstMove.current = true;
-    });
     // listen to other slice windows too
     // move slices to reslice cursor center
     for (const sliceData of windowsSliceArray) {
@@ -202,6 +189,7 @@ export const WindowSlicer = forwardRef(({axis}: Props, ref: any) => {
           moveResliceCursorToSlice(axis, widgets, imageData, image);
         } else {
           moveSliceToResliceCursor(widgets, sliceData.imageSlice.image);
+          sliceData.windowSlice.renderWindow.render();
         }
       });
 
@@ -248,14 +236,6 @@ export const WindowSlicer = forwardRef(({axis}: Props, ref: any) => {
 
     cameraParallelScaleRef.current = camera.getParallelScale();
     renderWindow.render();
-
-    const widgetState = widgets.resliceCursorWidget.getWidgetState();
-    const center = widgetState.getCenter();
-    let slice = image.mapper.getSliceAtPosition(center);
-    slice = Math.round(slice)
-    // image.mapper.setSlice(slice);
-    // setCurrentSlice(slice);
-    console.log(`axis: ${axis}, slice: ${slice}`);
 
     const value: any = {
       axis,
