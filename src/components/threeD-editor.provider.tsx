@@ -113,7 +113,8 @@ export const ThreeDEditorProvider = ({
     resliceCursorWidgetState.setKeepOrthogonality(true);
     resliceCursorWidgetState.setOpacity(0.6);
     resliceCursorWidgetState.setSphereRadius(10 * window.devicePixelRatio);
-    resliceCursorWidgetState.setLineThickness(5);
+    resliceCursorWidgetState.setLineThickness(3);
+    resliceCursorWidgetState.setEnableRotation(false);
     widgets.resliceCursorWidget.setImage(imageData);
 
     painter.setBackgroundImage(imageData);

@@ -8,6 +8,7 @@ import vtkAngleWidget from '@kitware/vtk.js/Widgets/Widgets3D/AngleWidget';
 import vtkLabelWidget from '@kitware/vtk.js/Widgets/Widgets3D/LabelWidget';
 import vtkSplineWidget from '@kitware/vtk.js/Widgets/Widgets3D/SplineWidget';
 import vtkResliceCursorWidget from '@kitware/vtk.js/Widgets/Widgets3D/ResliceCursorWidget';
+import * as resliceCursorHelpers from '@kitware/vtk.js/Widgets/Widgets3D/ResliceCursorWidget/helpers';
 import {xyzToViewType} from '@kitware/vtk.js/Widgets/Widgets3D/ResliceCursorWidget/Constants';
 
 import vtkPaintFilter from '@kitware/vtk.js/Filters/General/PaintFilter';
@@ -26,6 +27,7 @@ export {
   vtkPaintFilter,
   vtkSplineWidget,
   vtkResliceCursorWidget,
+  resliceCursorHelpers,
   xyzToViewType,
   ViewTypes,
   CaptureOn,
