@@ -68,7 +68,7 @@ export const WindowVolume = () => {
 
     const loop = setInterval(() => {
       renderWindow.render();
-    }, 1/60*1000);
+    }, 1/30*1000);
 
     return () => {
       clearInterval(loop);
