@@ -57,21 +57,21 @@ export const ThreeDEditorProvider = ({
       id: 0,
       name: "Dog",
       color: "#FF0000",
-      opacity: 100,
+      opacity: 60,
       maskValue: 1,
     },
     {
       id: 1,
       name: "Cat",
       color: "#00FF00",
-      opacity: 100,
+      opacity: 60,
       maskValue: 2,
     },
     {
       id: 2,
       name: "Bird",
       color: "#0000FF",
-      opacity: 100,
+      opacity: 60,
       maskValue: 3,
     },
   ]);
@@ -118,7 +118,7 @@ export const ThreeDEditorProvider = ({
     widgets.resliceCursorWidget.setImage(imageData);
 
     painter.setBackgroundImage(imageData);
-    const radius = 20;
+    const radius = 10;
     painter.setRadius(radius);
     widgets.paintWidget.setRadius(radius);
 

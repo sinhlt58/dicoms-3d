@@ -1,24 +1,18 @@
 import '@kitware/vtk.js/Rendering/Profiles/All';
-import vtkImageData from "@kitware/vtk.js/Common/DataModel/ImageData"
 import { useEffect, useRef } from "react";
 import { vtkColorMaps } from "../vtk_import";
 import { useThreeDEditorContext } from "./threeD-editor.provider"
 import { hexToRgb } from '../utils/utils';
 
-interface Props {
-  imageData: vtkImageData,
-}
 export const WindowVolume = () => {
   const {
     editorContext,
-    renderAllWindows,
     volume3dVisibility,
     slices3dVisibility,
     label3dVisibility,
     labels,
   } = useThreeDEditorContext();
   
-  const contextRef = useRef<any>();
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -27,11 +21,9 @@ export const WindowVolume = () => {
     const {
       imageData,
       painter,
-      widgets,
       windowVolume,
       imageVolume,
       labelFilterVolume,
-      windowsSliceArray,
     } = editorContext;
     const {genericRenderWindow, renderer, renderWindow} = windowVolume;
     genericRenderWindow.setContainer(containerRef.current as HTMLDivElement);

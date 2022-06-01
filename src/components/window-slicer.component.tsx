@@ -3,7 +3,7 @@ import vtkImageData from "@kitware/vtk.js/Common/DataModel/ImageData";
 import vtkRenderer from "@kitware/vtk.js/Rendering/Core/Renderer";
 import { Vector3 } from "@kitware/vtk.js/types";
 import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
-import { CaptureOn, resliceCursorHelpers, SlicingMode, ViewTypes, vtkInteractorStyleImage, xyzToViewType } from "../vtk_import";
+import { CaptureOn, SlicingMode, vtkInteractorStyleImage } from "../vtk_import";
 import { useThreeDEditorContext } from "./threeD-editor.provider";
 import { EditorToolType } from './editor.models';
 import { hexToRgb } from '../utils/utils';
@@ -27,11 +27,8 @@ export const WindowSlicer = forwardRef(({axis}: Props, ref: any) => {
     activeTool,
     labels,
     activeLabel,
-    slices3dVisibility,
   } = useThreeDEditorContext();
   const [context, setContext] = useState<any>();
-
-  const isFirstMove = useRef<boolean>(true);
 
   const update = useCallback((
     image: any,
@@ -62,12 +59,12 @@ export const WindowSlicer = forwardRef(({axis}: Props, ref: any) => {
     widgets: any,
     imageData: any,
     image: any,
-    slice?: number,
   ) => {
     const widgetState = widgets.resliceCursorWidget.getWidgetState();
     let center = widgetState.getCenter();
     const ijkCenter = imageData.worldToIndex(center);
-    ijkCenter[axis] = slice !== undefined ? slice : image.mapper.getSlice();
+    let slice = image.mapper.getSlice()
+    ijkCenter[axis] = slice;
     // move center
     center = imageData.indexToWorld(ijkCenter);
     // set cursor center to new position
@@ -75,15 +72,17 @@ export const WindowSlicer = forwardRef(({axis}: Props, ref: any) => {
   }, []);
 
   const moveSliceToResliceCursor = useCallback((
+    axis,
     widgets: any,
     image: any,
+    imageData: any,
   ) => {
     const widgetState = widgets.resliceCursorWidget.getWidgetState();
     const center = widgetState.getCenter();
-    let slice = image.mapper.getSliceAtPosition(center);
-    slice = Math.round(slice);
-    image.mapper.setSlice(slice);
-    
+    const centerIJK = imageData.worldToIndex(center);
+    // to make the widget display before the slice
+    const snapSlice =  Math.floor(centerIJK[axis]);
+    image.mapper.setSlice(snapSlice);
   }, []);
 
   useEffect(() => {
@@ -178,37 +177,38 @@ export const WindowSlicer = forwardRef(({axis}: Props, ref: any) => {
     handles.polygonHandle.setOutputBorder(true);
     // reslice cursor
     handles.resliceCursorHandle.getRepresentations()[0].setScaleInPixels(true);
-
     widgetManager.setCaptureOn(CaptureOn.MOUSE_MOVE);
+
+    const otherSlicesData = windowsSliceArray.filter((sliceData: any) => sliceData.axis !== axis);
+    handles.resliceCursorHandle.onActivateHandle(() => {
+      moveResliceCursorToSlice(axis, widgets, imageData, image);
+      for (const sliceData of otherSlicesData) {
+        moveSliceToResliceCursor(sliceData.axis, widgets, sliceData.imageSlice.image, imageData);
+        sliceData.windowSlice.renderWindow.render();
+      }
+    });
+
+    handles.resliceCursorHandle.onStartInteractionEvent(() => {
+      // handle scroll case
+      moveResliceCursorToSlice(axis, widgets, imageData, image);
+      for (const sliceData of otherSlicesData) {
+        moveSliceToResliceCursor(sliceData.axis, widgets, sliceData.imageSlice.image, imageData);
+      }
+    });
+
+    handles.resliceCursorHandle.onInteractionEvent(({
+      computeFocalPointOffset,
+      canUpdateFocalPoint,
+    }: any) => {
+      moveSliceToResliceCursor(axis, widgets, image, imageData);
+      for (const sliceData of otherSlicesData) {
+        moveSliceToResliceCursor(sliceData.axis, widgets, sliceData.imageSlice.image, imageData);
+      }
+    });
 
     // listen to other slice windows too
     // move slices to reslice cursor center
-    for (const sliceData of windowsSliceArray) {
-      handles.resliceCursorHandle.onActivateHandle(() => {
-        if (sliceData.axis === axis) {
-          moveResliceCursorToSlice(axis, widgets, imageData, image);
-        } else {
-          moveSliceToResliceCursor(widgets, sliceData.imageSlice.image);
-          sliceData.windowSlice.renderWindow.render();
-        }
-      });
-
-      sliceData.handles.resliceCursorHandle.onStartInteractionEvent(() => {
-        if (sliceData.axis === axis) {
-          // handle scroll case
-          moveResliceCursorToSlice(axis, widgets, imageData, image); 
-        } else {
-          moveSliceToResliceCursor(widgets, image);
-        }
-      });
-
-      sliceData.handles.resliceCursorHandle.onInteractionEvent(({
-        computeFocalPointOffset,
-        canUpdateFocalPoint,
-      }: any) => {
-        moveSliceToResliceCursor(widgets, image);
-      });
-    }
+    
 
     ready();
 
@@ -251,6 +251,7 @@ export const WindowSlicer = forwardRef(({axis}: Props, ref: any) => {
       camera,
       windowVolume,
       windowsSliceArray,
+      otherSlicesData,
     }
     setContext(value);
     console.log(`Done init window slice: ${axis}`);
@@ -296,7 +297,6 @@ export const WindowSlicer = forwardRef(({axis}: Props, ref: any) => {
       widgets,
       imageData,
       image,
-      renderWindow,
       windowsSliceArray,
     } = context;
 
@@ -352,7 +352,6 @@ export const WindowSlicer = forwardRef(({axis}: Props, ref: any) => {
       widgets,
       handles,
       labelMap,
-      windowVolume,
     } = context;
 
     if (activeTool) {
