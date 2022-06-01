@@ -69,7 +69,6 @@ export const WindowSlicer = forwardRef(({axis}: Props, ref: any) => {
     ijkCenter[axis] = slice !== undefined ? slice : image.mapper.getSlice();
     // move center
     center = imageData.indexToWorld(ijkCenter);
-    console.log(center)
     // set cursor center to new position
     widgets.resliceCursorWidget.setCenter(center);
   }, []);
@@ -184,12 +183,13 @@ export const WindowSlicer = forwardRef(({axis}: Props, ref: any) => {
     handles.resliceCursorHandle.onActivateHandle(() => {
       moveResliceCursorToSlice(axis, widgets, imageData, image);
       for (const sliceData of windowsSliceArray) {
-        sliceData.windowSlice.renderWindow.render();
+        if (sliceData.axis !== axis) {
+          sliceData.windowSlice.renderWindow.render();
+        }
       }
     });
     handles.resliceCursorHandle.onStartInteractionEvent(() => {
-      // handle scroll case
-      moveResliceCursorToSlice(axis, widgets, imageData, image); 
+      
     });
     handles.resliceCursorHandle.onEndInteractionEvent(() => {
       isFirstMove.current = true;
@@ -197,8 +197,21 @@ export const WindowSlicer = forwardRef(({axis}: Props, ref: any) => {
     // listen to other slice windows too
     // move slices to reslice cursor center
     for (const sliceData of windowsSliceArray) {
+      handles.resliceCursorHandle.onActivateHandle(() => {
+        if (sliceData.axis === axis) {
+          moveResliceCursorToSlice(axis, widgets, imageData, image);
+        } else {
+          moveSliceToResliceCursor(widgets, sliceData.imageSlice.image);
+        }
+      });
+
       sliceData.handles.resliceCursorHandle.onStartInteractionEvent(() => {
-        moveSliceToResliceCursor(widgets, image);
+        if (sliceData.axis === axis) {
+          // handle scroll case
+          moveResliceCursorToSlice(axis, widgets, imageData, image); 
+        } else {
+          moveSliceToResliceCursor(widgets, image);
+        }
       });
 
       sliceData.handles.resliceCursorHandle.onInteractionEvent(({
@@ -310,7 +323,6 @@ export const WindowSlicer = forwardRef(({axis}: Props, ref: any) => {
     setCurrentSlice(slice);
     image.mapper.setSlice(slice);
     
-    // console.log(widgets.resliceCursorWidget.getWidgetState().setActive(true))
     moveResliceCursorToSlice(axis, widgets, imageData, image);
 
     for (const sliceData of windowsSliceArray) {

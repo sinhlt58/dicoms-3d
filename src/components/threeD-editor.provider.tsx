@@ -111,7 +111,7 @@ export const ThreeDEditorProvider = ({
     const resliceCursorWidgetState = widgets.resliceCursorWidget.getWidgetState();
     widgets.resliceCursorWidgetState = resliceCursorWidgetState;
     resliceCursorWidgetState.setKeepOrthogonality(true);
-    resliceCursorWidgetState.setOpacity(0.6);
+    resliceCursorWidgetState.setOpacity(0.8);
     resliceCursorWidgetState.setSphereRadius(10 * window.devicePixelRatio);
     resliceCursorWidgetState.setLineThickness(3);
     resliceCursorWidgetState.setEnableRotation(false);
