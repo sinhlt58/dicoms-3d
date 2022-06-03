@@ -33,7 +33,6 @@ export const WindowSlicer = forwardRef(({
     activeTool,
     crossHairVisibility,
     labels,
-    activeLabel,
   } = useThreeDEditorContext();
   const [context, setContext] = useState<any>();
   const isWindowActive = useMemo(() => activeWindow === windowId, [activeWindow, windowId]);
@@ -293,20 +292,60 @@ export const WindowSlicer = forwardRef(({
   }, [labels, context]);
 
   useEffect(() => {
-    if (!context) return;
-    if (!activeLabel) {
-      context.widgetManager.releaseFocus();
-    }
-  }, [activeLabel, context]);
-
-  useEffect(() => {
     crossHairVisibilityRef.current = crossHairVisibility;
     if (!context) return;
     const {handles, renderWindow} = context;
-    context.handles.resliceCursorHandle.setVisibility(crossHairVisibility);
+    handles.resliceCursorHandle.setVisibility(crossHairVisibility);
     renderWindow.render();
 
   }, [crossHairVisibility, context]);
+
+  useEffect(() => {
+    if (!context) return;
+
+    const updateHandlesVisibility = (visible: boolean) => {
+      if (!context) return;
+      const {handles, renderWindow} = context;
+      if (activeTool?.type === EditorToolType.SEGMENT_BRUSH){
+        handles.paintHandle.setVisibility(visible);
+      }
+      if (activeTool?.type === EditorToolType.SEGMENT_POLY){
+        // handles.polygonHandle.setVisibility(visible);
+      }
+      renderWindow.render();
+    }
+
+    const {
+      axis,
+      image,
+      imageData,
+      painter,
+      widgetManager,
+      widgets,
+      handles,
+      labelMap,
+    } = context;
+
+    if (isWindowActive) {
+      if (activeTool) {
+        painter.setSlicingMode(axis);
+        update(image, imageData, widgets, painter, handles, labelMap);
+      }
+      if (activeTool?.type === EditorToolType.SEGMENT_BRUSH) {
+        widgetManager.grabFocus(widgets.paintWidget);
+      } else if (activeTool?.type === EditorToolType.SEGMENT_POLY) {
+        widgetManager.grabFocus(widgets.polygonWidget);
+      } else if (activeTool?.type === EditorToolType.NAVIGATION_CROSS_HAIR) {
+        handles.resliceCursorHandle.setDragable(true);
+      }
+      updateHandlesVisibility(true);
+    } else {
+      updateHandlesVisibility(false);
+      handles.resliceCursorHandle.setDragable(false);
+      widgetManager.releaseFocus();
+    }
+
+  }, [context, isWindowActive, activeTool, update]);
 
   const handleSliceChanged = (slice: number) => {
     if (!context) return;
@@ -348,51 +387,12 @@ export const WindowSlicer = forwardRef(({
     context.renderWindow.render();
   }
 
-  const updateHandlesVisibility = (visible: boolean) => {
-    if (!context) return;
-    const {handles, renderWindow} = context;
-    if (activeTool?.type === EditorToolType.SEGMENT_BRUSH){
-      handles.paintHandle.setVisibility(visible);
-    }
-    if (activeTool?.type === EditorToolType.SEGMENT_POLY){
-      // handles.polygonHandle.setVisibility(visible);
-    }
-    renderWindow.render();
-  }
-
   const handleContainerOnMouseEnter = () => {
     setActiveWindow(windowId);
-    if (!context || !context.painter || !activeLabel) return;
-    const {
-      image,
-      imageData,
-      painter,
-      widgetManager,
-      widgets,
-      handles,
-      labelMap,
-    } = context;
-
-    if (activeTool) {
-      painter.setSlicingMode(axis);
-      update(image, imageData, widgets, painter, handles, labelMap);
-    }
-    if (activeTool?.type === EditorToolType.SEGMENT_BRUSH) {
-      widgetManager.grabFocus(widgets.paintWidget);
-    } else if (activeTool?.type === EditorToolType.SEGMENT_POLY) {
-      widgetManager.grabFocus(widgets.polygonWidget);
-    }
-    updateHandlesVisibility(true);
   }
 
   const handleContainerOnMouseLeave = () => {
     setActiveWindow(-1);
-    if (!context) return;
-    const {widgetManager} = context;
-    if (activeTool) {
-      widgetManager.releaseFocus();
-    }
-    updateHandlesVisibility(false);
   }
 
   const handleContainerOnMouseMove = () => {
