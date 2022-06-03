@@ -32,8 +32,8 @@ interface ThreeDEditorState {
   crossHairVisibility: boolean;
   setCrossHairVisibility: (v: boolean) => void;
 
-  activeLabel: EditorLabel | undefined;
-  setActiveLabel: (v: EditorLabel | undefined) => void;
+  activeLabel: EditorLabel;
+  setActiveLabel: (v: EditorLabel) => void;
 
   labels: EditorLabel[];
   setLabels: (v: EditorLabel[]) => void;
@@ -57,31 +57,41 @@ export const ThreeDEditorProvider = ({
   const [slices3dVisibility, setSlices3dVisibility] = useState<boolean>(false);
   const [label3dVisibility, setLabel3dVisibility] = useState<boolean>(false);
   const [activeTool ,setActiveTool] = useState<EditorTool>();
-  const [crossHairVisibility, setCrossHairVisibility] = useState<boolean>(false);
-  const [activeLabel, setActiveLabel] = useState<EditorLabel>();
-  const [labels, setLabels] = useState<EditorLabel[]>([
+  const [crossHairVisibility, setCrossHairVisibility] = useState<boolean>(true);
+
+  const labelsData: EditorLabel[] = [
     {
       id: 0,
+      name: "Eraser",
+      color: "#FFFFFF",
+      opacity: 0,
+      maskValue: 0,
+    },
+    {
+      id: 1,
       name: "Dog",
       color: "#FF0000",
       opacity: 60,
       maskValue: 1,
     },
     {
-      id: 1,
+      id: 2,
       name: "Cat",
       color: "#00FF00",
       opacity: 60,
       maskValue: 2,
     },
     {
-      id: 2,
+      id: 3,
       name: "Bird",
       color: "#0000FF",
       opacity: 60,
       maskValue: 3,
     },
-  ]);
+  ];
+  const [labels, setLabels] = useState<EditorLabel[]>(labelsData);
+  const [activeLabel, setActiveLabel] = useState<EditorLabel>(labelsData[1]);
+
   const sliceIRef = useRef<HTMLDivElement>();
   const sliceJRef = useRef<HTMLDivElement>();
   const sliceKRef = useRef<HTMLDivElement>();
@@ -241,13 +251,7 @@ export const ThreeDEditorProvider = ({
 
   useEffect(() => {
     if (!context) return;
-
-    if (activeLabel) {
-      context.painter.setLabel(activeLabel.maskValue);
-    } else {
-      context.painter.setLabel(0);
-    }
-
+    context.painter.setLabel(activeLabel.maskValue);
   }, [activeLabel, context]);
 
   const renderAllWindows = () => {

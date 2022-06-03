@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import { classnames } from "../utils/utils";
 import { EditorLabel, EditorTool, EditorToolType } from "./editor.models";
 import { useThreeDEditorContext } from "./threeD-editor.provider"
@@ -53,11 +54,7 @@ export const ThreeDEditorNav = ({
   }
 
   const handleLabelChanged = (label: EditorLabel) => {
-    if (activeLabel?.id === label.id) {
-      setActiveLabel(undefined);
-    } else {
-      setActiveLabel(label);
-    }
+    setActiveLabel(label);
   }
 
   const handleLabelOpacityChanged = (label: EditorLabel, v: number) => {
@@ -145,23 +142,28 @@ export const ThreeDEditorNav = ({
             return (
               <div key={label.id} className="flex items-center gap-2 my-2">
                 <input 
-                  type="checkbox" 
-                  checked={activeLabel?.id === label.id}
+                  type="radio" 
+                  checked={activeLabel.id === label.id}
                   onChange={() => handleLabelChanged(label)}
                 />
-                <div style={{
-                  width: "40px",
-                  height: "20px",
-                  background: label.color,
-                  opacity: label.opacity,
-                }}></div>
-                <input 
-                  type="range"
-                  value={label.opacity}
-                  min={0}
-                  max={100}
-                  onChange={e => handleLabelOpacityChanged(label, parseFloat(e.target.value))}
-                />
+                {
+                  label.id !== 0 && // 0 mean eraser
+                  <Fragment>
+                    <div style={{
+                      width: "40px",
+                      height: "20px",
+                      background: label.color,
+                      opacity: label.opacity,
+                    }}></div>
+                    <input 
+                      type="range"
+                      value={label.opacity}
+                      min={0}
+                      max={100}
+                      onChange={e => handleLabelOpacityChanged(label, parseFloat(e.target.value))}
+                    />
+                  </Fragment>
+                }
                 <span>{label.name}</span>
               </div>
             )
