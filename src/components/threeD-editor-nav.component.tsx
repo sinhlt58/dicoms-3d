@@ -18,6 +18,8 @@ export const ThreeDEditorNav = ({
 
     activeTool,
     setActiveTool,
+    crossHairVisibility,
+    setCrossHairVisibility,
     activeLabel,
     setActiveLabel,
     labels,
@@ -26,12 +28,17 @@ export const ThreeDEditorNav = ({
 
   const tools: EditorTool[] = [
     {
-      id: 0,
+      id: 0, 
+      name: "Cross",
+      type: EditorToolType.NAVIGATION_CROSS_HAIR,
+    },
+    {
+      id: 1,
       name: "Brush",
       type: EditorToolType.SEGMENT_BRUSH,
     },
     {
-      id: 1,
+      id: 2,
       name: "Poly",
       type: EditorToolType.SEGMENT_POLY,
     },
@@ -101,9 +108,17 @@ export const ThreeDEditorNav = ({
         </div>
       </div>
 
-      <div className="mt-4">
-        <p className="font-bold">Segment tools</p>
-        <div className="flex items-center gap-2 flex-wrap mt-2">
+      <div className="mt-4 flex flex-col gap-2">
+        <p className="font-bold">Tools</p>
+        <div className="flex gap-2 items-center">
+          <input
+            type="checkbox"
+            checked={crossHairVisibility}
+            onChange={e => setCrossHairVisibility(e.target.checked)}
+          />
+          <span>Show crosshair</span>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
           {
             tools.map(tool => {
               return (

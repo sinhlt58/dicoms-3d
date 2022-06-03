@@ -17,6 +17,9 @@ interface ThreeDEditorState {
   editorContext: any;
   renderAllWindows: () => void;
 
+  activeWindow: number;
+  setActiveWindow: (v: number) => void;
+
   volume3dVisibility: boolean;
   setVolume3dVisibility: (v: boolean) => void;
   slices3dVisibility: boolean;
@@ -26,6 +29,8 @@ interface ThreeDEditorState {
 
   activeTool: EditorTool | undefined;
   setActiveTool: (v: EditorTool | undefined) => void;
+  crossHairVisibility: boolean;
+  setCrossHairVisibility: (v: boolean) => void;
 
   activeLabel: EditorLabel | undefined;
   setActiveLabel: (v: EditorLabel | undefined) => void;
@@ -47,10 +52,12 @@ export const ThreeDEditorProvider = ({
 }: ThreeDEditorProviderProps) => {
 
   const [context, setContext] = useState<any>();
+  const [activeWindow, setActiveWindow] = useState<number>(-1);
   const [volume3dVisibility, setVolume3dVisibility] = useState<boolean>(false);
   const [slices3dVisibility, setSlices3dVisibility] = useState<boolean>(false);
   const [label3dVisibility, setLabel3dVisibility] = useState<boolean>(false);
   const [activeTool ,setActiveTool] = useState<EditorTool>();
+  const [crossHairVisibility, setCrossHairVisibility] = useState<boolean>(false);
   const [activeLabel, setActiveLabel] = useState<EditorLabel>();
   const [labels, setLabels] = useState<EditorLabel[]>([
     {
@@ -255,6 +262,8 @@ export const ThreeDEditorProvider = ({
   const value: ThreeDEditorState = {
     editorContext: context,
     renderAllWindows,
+    activeWindow,
+    setActiveWindow,
 
     volume3dVisibility,
     setVolume3dVisibility,
@@ -265,6 +274,8 @@ export const ThreeDEditorProvider = ({
 
     activeTool,
     setActiveTool,
+    crossHairVisibility,
+    setCrossHairVisibility,
     activeLabel,
     setActiveLabel,
     labels,
@@ -281,20 +292,32 @@ export const ThreeDEditorProvider = ({
             gridTemplateColumns: "repeat(2, 1fr)",
             gridTemplateRows: "50% 50%",
             height: `calc(100vh - 80px)`,
-            gridGap: "2px",
+            gridGap: "1px",
           }}
         >
           <div className="">
-            <WindowVolume />
+            <WindowVolume windowId={3} />
           </div>
           <div className="">
-            <WindowSlicer ref={sliceIRef} axis={SlicingMode.I} />
+            <WindowSlicer
+              ref={sliceIRef}
+              axis={SlicingMode.I}
+              windowId={SlicingMode.I}
+            />
           </div>
           <div className="">
-            <WindowSlicer ref={sliceJRef} axis={SlicingMode.J} />
+            <WindowSlicer
+              ref={sliceJRef}
+              axis={SlicingMode.J}
+              windowId={SlicingMode.J}
+            />
           </div>
           <div className="">
-            <WindowSlicer ref={sliceKRef} axis={SlicingMode.K} /> 
+            <WindowSlicer
+              ref={sliceKRef}
+              axis={SlicingMode.K}
+              windowId={SlicingMode.K}
+            /> 
           </div>
         </div>
       </div>

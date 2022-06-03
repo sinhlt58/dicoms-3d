@@ -1,17 +1,21 @@
-import '@kitware/vtk.js/Rendering/Profiles/All';
+import "@kitware/vtk.js/Rendering/Profiles/All";
 import vtkImageData from "@kitware/vtk.js/Common/DataModel/ImageData";
 import vtkRenderer from "@kitware/vtk.js/Rendering/Core/Renderer";
 import { Vector3 } from "@kitware/vtk.js/types";
-import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
+import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CaptureOn, SlicingMode, vtkInteractorStyleImage } from "../vtk_import";
 import { useThreeDEditorContext } from "./threeD-editor.provider";
-import { EditorToolType } from './editor.models';
-import { hexToRgb } from '../utils/utils';
+import { EditorToolType } from "./editor.models";
+import { classnames, hexToRgb } from "../utils/utils";
 
 interface Props {
   axis: any,
+  windowId: number,
 }
-export const WindowSlicer = forwardRef(({axis}: Props, ref: any) => {
+export const WindowSlicer = forwardRef(({
+  axis,
+  windowId,
+}: Props, ref: any) => {
   const [currentSlice, setCurrentSlice] = useState(0);
   const [maxSlice, setMaxSlice] = useState(0);
   const [minSlice, setMinSlice] = useState(0);
@@ -22,13 +26,19 @@ export const WindowSlicer = forwardRef(({axis}: Props, ref: any) => {
   const cameraParallelScaleRef = useRef<number>();
 
   const {
+    activeWindow,
+    setActiveWindow,
     editorContext,
     renderAllWindows,
     activeTool,
+    crossHairVisibility,
     labels,
     activeLabel,
   } = useThreeDEditorContext();
   const [context, setContext] = useState<any>();
+  const isWindowActive = useMemo(() => activeWindow === windowId, [activeWindow, windowId]);
+
+  const crossHairVisibilityRef = useRef<boolean>(false);
 
   const update = useCallback((
     image: any,
@@ -51,7 +61,7 @@ export const WindowSlicer = forwardRef(({axis}: Props, ref: any) => {
 
     handles.paintHandle.updateRepresentationForRender();
     handles.polygonHandle.updateRepresentationForRender();
-    labelMap.mapper.set(image.mapper.get('slice', 'slicingMode'));
+    labelMap.mapper.set(image.mapper.get("slice", "slicingMode"));
   }, []);
 
   const moveResliceCursorToSlice = useCallback((
@@ -108,7 +118,7 @@ export const WindowSlicer = forwardRef(({axis}: Props, ref: any) => {
     // set 2D view
     camera.setParallelProjection(true);
     const isstyle = vtkInteractorStyleImage.newInstance();
-    isstyle.setInteractionMode('IMAGE_SLICING');
+    isstyle.setInteractionMode("IMAGE_SLICING");
     renderWindow.getInteractor().setInteractorStyle(isstyle);
 
     const setCamera = (sliceMode: any, renderer: vtkRenderer, data: vtkImageData) => {
@@ -178,9 +188,11 @@ export const WindowSlicer = forwardRef(({axis}: Props, ref: any) => {
     // reslice cursor
     handles.resliceCursorHandle.getRepresentations()[0].setScaleInPixels(true);
     widgetManager.setCaptureOn(CaptureOn.MOUSE_MOVE);
+    handles.resliceCursorHandle.setVisibility(false);
 
     const otherSlicesData = windowsSliceArray.filter((sliceData: any) => sliceData.axis !== axis);
     handles.resliceCursorHandle.onActivateHandle(() => {
+      if (!crossHairVisibilityRef.current) return;
       moveResliceCursorToSlice(axis, widgets, imageData, image);
       for (const sliceData of otherSlicesData) {
         moveSliceToResliceCursor(sliceData.axis, widgets, sliceData.imageSlice.image, imageData);
@@ -189,6 +201,7 @@ export const WindowSlicer = forwardRef(({axis}: Props, ref: any) => {
     });
 
     handles.resliceCursorHandle.onStartInteractionEvent(() => {
+      if (!crossHairVisibilityRef.current) return;
       // handle scroll case
       moveResliceCursorToSlice(axis, widgets, imageData, image);
       for (const sliceData of otherSlicesData) {
@@ -200,16 +213,13 @@ export const WindowSlicer = forwardRef(({axis}: Props, ref: any) => {
       computeFocalPointOffset,
       canUpdateFocalPoint,
     }: any) => {
+      if (!crossHairVisibilityRef.current) return;
       moveSliceToResliceCursor(axis, widgets, image, imageData);
       for (const sliceData of otherSlicesData) {
         moveSliceToResliceCursor(sliceData.axis, widgets, sliceData.imageSlice.image, imageData);
       }
     });
-
-    // listen to other slice windows too
-    // move slices to reslice cursor center
     
-
     ready();
 
     // set input data
@@ -287,8 +297,16 @@ export const WindowSlicer = forwardRef(({axis}: Props, ref: any) => {
     if (!activeLabel) {
       context.widgetManager.releaseFocus();
     }
-
   }, [activeLabel, context]);
+
+  useEffect(() => {
+    crossHairVisibilityRef.current = crossHairVisibility;
+    if (!context) return;
+    const {handles, renderWindow} = context;
+    context.handles.resliceCursorHandle.setVisibility(crossHairVisibility);
+    renderWindow.render();
+
+  }, [crossHairVisibility, context]);
 
   const handleSliceChanged = (slice: number) => {
     if (!context) return;
@@ -343,6 +361,7 @@ export const WindowSlicer = forwardRef(({axis}: Props, ref: any) => {
   }
 
   const handleContainerOnMouseEnter = () => {
+    setActiveWindow(windowId);
     if (!context || !context.painter || !activeLabel) return;
     const {
       image,
@@ -367,6 +386,7 @@ export const WindowSlicer = forwardRef(({axis}: Props, ref: any) => {
   }
 
   const handleContainerOnMouseLeave = () => {
+    setActiveWindow(-1);
     if (!context) return;
     const {widgetManager} = context;
     if (activeTool) {
@@ -379,7 +399,11 @@ export const WindowSlicer = forwardRef(({axis}: Props, ref: any) => {
   }
 
   return (
-    <div className='w-full h-full relative'
+    <div className={classnames(
+      "w-full h-full relative",
+      {"border-2 border-white": !isWindowActive},
+      {"border-2 border-blue-400": isWindowActive},
+    )} 
       onMouseEnter={() => handleContainerOnMouseEnter()}
       onMouseLeave={() => handleContainerOnMouseLeave()}
       onMouseMove={() => handleContainerOnMouseMove()}
@@ -390,9 +414,9 @@ export const WindowSlicer = forwardRef(({axis}: Props, ref: any) => {
       >
         <span className="absolute top-1 right-1 text-lg font-bold text-white">{axis}</span>
       </div>
-      <div className='absolute top-1 left-1 flex flex-col gap-2 p-2 border rounded bg-white'
+      <div className="absolute top-1 left-1 flex flex-col gap-2 p-2 border rounded bg-white"
       >
-        <div className='flex items-center gap-2'>
+        <div className="flex items-center gap-2">
           <input 
             type="range"
             min={minSlice}
@@ -402,7 +426,7 @@ export const WindowSlicer = forwardRef(({axis}: Props, ref: any) => {
           />
           <span>Slice: {currentSlice}/{maxSlice}</span>
         </div>
-        <div className='flex items-center gap-2 hidden'>
+        <div className="flex items-center gap-2 hidden">
           <input 
             type="range"
             min="0"
@@ -413,7 +437,7 @@ export const WindowSlicer = forwardRef(({axis}: Props, ref: any) => {
           />
           <span>Window level: {colorWindow}</span>
         </div>
-        <div className='flex items-center gap-2 hidden'>
+        <div className="flex items-center gap-2 hidden">
           <input
             type="range"
             min="0"
@@ -424,7 +448,7 @@ export const WindowSlicer = forwardRef(({axis}: Props, ref: any) => {
           />
           <span>Color level: {colorLevel}</span>
         </div>
-        <div className='flex items-center gap-2'>
+        <div className="flex items-center gap-2">
           <input
             type="range"
             min="1"

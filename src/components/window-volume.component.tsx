@@ -1,17 +1,25 @@
 import '@kitware/vtk.js/Rendering/Profiles/All';
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { vtkColorMaps } from "../vtk_import";
 import { useThreeDEditorContext } from "./threeD-editor.provider"
-import { hexToRgb } from '../utils/utils';
+import { classnames, hexToRgb } from '../utils/utils';
 
-export const WindowVolume = () => {
+interface Props {
+  windowId: number;
+}
+export const WindowVolume = ({
+  windowId,
+}: Props) => {
   const {
+    activeWindow,
+    setActiveWindow,
     editorContext,
     volume3dVisibility,
     slices3dVisibility,
     label3dVisibility,
     labels,
   } = useThreeDEditorContext();
+  const isWindowActive = useMemo(() => activeWindow === windowId, [activeWindow, windowId]);
   
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -58,13 +66,13 @@ export const WindowVolume = () => {
     renderer.resetCamera();
     renderWindow.render();
 
-    const loop = setInterval(() => {
-      renderWindow.render();
-    }, 1/30*1000);
+    // const loop = setInterval(() => {
+    //   renderWindow.render();
+    // }, 1/30*1000);
 
-    return () => {
-      clearInterval(loop);
-    }
+    // return () => {
+    //   clearInterval(loop);
+    // }
 
   }, [editorContext]);
 
@@ -117,10 +125,24 @@ export const WindowVolume = () => {
     labelFilterVolume.actor.setVisibility(label3dVisibility);
   }, [editorContext, label3dVisibility]);
 
+  const handleContainerOnMouseEnter = () => {
+    setActiveWindow(windowId);
+  }
+
+  const handleContainerOnMouseLeave = () => {
+    setActiveWindow(-1);
+  }
+
   return (
     <div
       ref={containerRef}
-      className="w-full h-full flex items-center justify-center"
+      onMouseEnter={handleContainerOnMouseEnter}
+      onMouseLeave={handleContainerOnMouseLeave}
+      className={classnames(
+        "w-full h-full flex items-center justify-center",
+        {"border-2 border-white": !isWindowActive},
+        {"border-2 border-blue-400": isWindowActive},
+      )}
     >
     </div>
   )

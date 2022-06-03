@@ -2,6 +2,7 @@
 export enum EditorToolType {
   SEGMENT_BRUSH,
   SEGMENT_POLY,
+  NAVIGATION_CROSS_HAIR,
 }
 
 export interface EditorTool {
