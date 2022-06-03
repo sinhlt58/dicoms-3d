@@ -342,7 +342,9 @@ export const WindowSlicer = forwardRef(({
     } else {
       updateHandlesVisibility(false);
       handles.resliceCursorHandle.setDragable(false);
-      widgetManager.releaseFocus();
+      if (activeTool?.type === EditorToolType.NAVIGATION_CROSS_HAIR) {
+        widgetManager.releaseFocus();
+      }
     }
 
   }, [context, isWindowActive, activeTool, update]);
