@@ -1,5 +1,5 @@
 import '@kitware/vtk.js/Rendering/Profiles/All';
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { vtkColorMaps } from "../vtk_import";
 import { useThreeDEditorContext } from "./threeD-editor.provider"
 import { classnames, hexToRgb } from '../utils/utils';
@@ -22,6 +22,13 @@ export const WindowVolume = ({
   const isWindowActive = useMemo(() => activeWindow === windowId, [activeWindow, windowId]);
   
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const [realTimeUpdate, setRealTimeUpdate] = useState<boolean>(false);
+  const realTimeUpdateRef = useRef<boolean>(false);
+
+  useEffect(() => {
+    realTimeUpdateRef.current = realTimeUpdate;
+  }, [realTimeUpdate]);
 
   useEffect(() => {
     if (!editorContext || !containerRef.current) return;
@@ -52,6 +59,7 @@ export const WindowVolume = ({
 
     imageVolume.actor.getProperty().setRGBTransferFunction(0, imageVolume.cfunc);
     imageVolume.actor.getProperty().setScalarOpacity(0, imageVolume.ofunc);
+    imageVolume.actor.setVisibility(false);
     
     // set up filter label map
     labelFilterVolume.mapper.setInputConnection(painter.getOutputPort());
@@ -66,13 +74,14 @@ export const WindowVolume = ({
     renderer.resetCamera();
     renderWindow.render();
 
-    // const loop = setInterval(() => {
-    //   renderWindow.render();
-    // }, 1/30*1000);
+    const loop = setInterval(() => {
+      if (!realTimeUpdateRef.current) return;
+      renderWindow.render();
+    }, 1/30*1000);
 
-    // return () => {
-    //   clearInterval(loop);
-    // }
+    return () => {
+      clearInterval(loop);
+    }
 
   }, [editorContext]);
 
@@ -133,17 +142,37 @@ export const WindowVolume = ({
     setActiveWindow(-1);
   }
 
+  const handleRefreshClick = () => {
+    if (!editorContext) return;
+    editorContext.windowVolume.renderWindow.render();
+  }
+
   return (
     <div
       ref={containerRef}
       onMouseEnter={handleContainerOnMouseEnter}
       onMouseLeave={handleContainerOnMouseLeave}
       className={classnames(
-        "w-full h-full flex items-center justify-center",
+        "w-full h-full flex items-center justify-center relative",
         {"border-2 border-white": !isWindowActive},
         {"border-2 border-blue-400": isWindowActive},
       )}
     >
+      <div className="absolute right-1 bottom-1 flex items-center gap-1 bg-white p-1 rounded">
+        <div className="flex items-center gap-1">
+          <input
+            type="checkbox"
+            onChange={(e) => setRealTimeUpdate(e.target.checked)}
+          />
+          <span>Real time</span>
+        </div>
+        <button
+          className="border rounded px-4 py-1"
+          onClick={handleRefreshClick}
+        >
+          Refresh
+        </button>
+      </div>
     </div>
   )
 }
