@@ -149,7 +149,6 @@ export const WindowVolume = ({
 
   return (
     <div
-      ref={containerRef}
       onMouseEnter={handleContainerOnMouseEnter}
       onMouseLeave={handleContainerOnMouseLeave}
       className={classnames(
@@ -158,11 +157,16 @@ export const WindowVolume = ({
         {"border-2 border-blue-400": isWindowActive},
       )}
     >
+      <div className="w-full h-full"
+        ref={containerRef}
+      >
+      </div>
       <div className="absolute right-1 bottom-1 flex items-center gap-1 bg-white p-1 rounded">
         <div className="flex items-center gap-1">
           <input
             type="checkbox"
-            onChange={(e) => setRealTimeUpdate(e.target.checked)}
+            checked={realTimeUpdate}
+            onChange={e =>setRealTimeUpdate(e.target.checked)}
           />
           <span>Real time</span>
         </div>
