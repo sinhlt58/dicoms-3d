@@ -56,7 +56,6 @@ export const WindowSlicer = forwardRef(({
     setCurrentSlice(slice);
     widgets.paintWidget.getManipulator().setHandleOrigin(position);
     widgets.polygonWidget.getManipulator().setHandleOrigin(position);
-    painter.setSlicingMode(slicingMode);
 
     handles.paintHandle.updateRepresentationForRender();
     handles.polygonHandle.updateRepresentationForRender();
