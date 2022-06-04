@@ -7,7 +7,7 @@ import vtkVolume from "@kitware/vtk.js/Rendering/Core/Volume";
 import vtkVolumeMapper from "@kitware/vtk.js/Rendering/Core/VolumeMapper";
 import vtkGenericRenderWindow from "@kitware/vtk.js/Rendering/Misc/GenericRenderWindow";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
-import { SlicingMode, ViewTypes, vtkPaintFilter, vtkPaintWidget, vtkResliceCursorWidget, vtkSplineWidget, vtkWidgetManager, xyzToViewType } from "../vtk_import";
+import { SlicingMode, ViewTypes, vtkPaintFilterCustom, vtkPaintWidget, vtkResliceCursorWidget, vtkSplineWidget, vtkWidgetManager, xyzToViewType } from "../vtk_import";
 import { EditorLabel, EditorTool } from "./editor.models";
 import { ThreeDEditorNav } from "./threeD-editor-nav.component";
 import { WindowSlicer } from "./window-slicer.component";
@@ -116,7 +116,7 @@ export const ThreeDEditorProvider = ({
       }
     }
  
-    const painter = vtkPaintFilter.newInstance();
+    const painter = vtkPaintFilterCustom.newInstance();
     const widgets: any = {
       paintWidget: vtkPaintWidget.newInstance(),
       polygonWidget: vtkSplineWidget.newInstance({
