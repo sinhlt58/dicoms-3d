@@ -116,7 +116,9 @@ function vtkPaintFilterCustom(publicAPI, model) {
     }
 
     pushToHistory(snapshot, label);
-    fillBetweenSnapshots(data);
+    if (model.autoFillBetweenSlices) {
+      fillBetweenSnapshots(data);
+    }
     scalars.setData(data);
     scalars.modified();
     model.labelMap.modified();
@@ -158,7 +160,7 @@ function vtkPaintFilterCustom(publicAPI, model) {
     const maxSlice = Math.max(firstSlice, secondSlice);
 
     for (let i=0; i<secondSnapshot.length; i++){
-      if (!secondSnapshot[i][0]) continue;
+      if (!secondSnapshot[i] || !secondSnapshot[i][0]) continue;
       const ijkPos = toIjk(secondSnapshot[i][0]);
       // check label at pos of the first slice
       ijkPos[axis] = firstSlice; 
@@ -422,7 +424,9 @@ var DEFAULT_VALUES = {
   voxelFunc: null,
   radius: 1,
   label: 0,
-  slicingMode: null
+  slicingMode: null,
+  // sinhlt added
+  autoFillBetweenSlices: false 
 }; // ----------------------------------------------------------------------------
 
 function extend(publicAPI, model) {
@@ -432,7 +436,7 @@ function extend(publicAPI, model) {
   macro.obj(publicAPI, model); // Also make it an algorithm with no input and one output
 
   macro.algo(publicAPI, model, 0, 1);
-  macro.setGet(publicAPI, model, ['backgroundImage', 'labelMap', 'maskWorldToIndex', 'voxelFunc', 'label', 'radius', 'slicingMode']); // Object specific methods
+  macro.setGet(publicAPI, model, ['backgroundImage', 'labelMap', 'maskWorldToIndex', 'voxelFunc', 'label', 'radius', 'slicingMode', 'autoFillBetweenSlices']); // Object specific methods
 
   vtkPaintFilterCustom(publicAPI, model);
 } // ----------------------------------------------------------------------------

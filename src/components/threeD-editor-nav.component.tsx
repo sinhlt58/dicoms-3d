@@ -21,6 +21,9 @@ export const ThreeDEditorNav = ({
     setActiveTool,
     crossHairVisibility,
     setCrossHairVisibility,
+    autoFillBetweenSlices,
+    setAutoFillBetweenSlices,
+
     activeLabel,
     setActiveLabel,
     labels,
@@ -107,14 +110,6 @@ export const ThreeDEditorNav = ({
 
       <div className="mt-4 flex flex-col gap-2">
         <p className="font-bold">Tools</p>
-        <div className="flex gap-2 items-center">
-          <input
-            type="checkbox"
-            checked={crossHairVisibility}
-            onChange={e => setCrossHairVisibility(e.target.checked)}
-          />
-          <span>Show crosshair</span>
-        </div>
         <div className="flex items-center gap-2 flex-wrap">
           {
             tools.map(tool => {
@@ -132,6 +127,22 @@ export const ThreeDEditorNav = ({
               )
             })
           }
+        </div>
+        <div className="flex gap-2 items-center">
+          <input
+            type="checkbox"
+            checked={crossHairVisibility}
+            onChange={e => setCrossHairVisibility(e.target.checked)}
+          />
+          <span>Show crosshair</span>
+        </div>
+        <div className="flex gap-2 items-center">
+          <input
+            type="checkbox"
+            checked={autoFillBetweenSlices}
+            onChange={e => setAutoFillBetweenSlices(e.target.checked)}
+          />
+          <span>Auto fill between</span>
         </div>
       </div>
 

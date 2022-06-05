@@ -31,6 +31,8 @@ interface ThreeDEditorState {
   setActiveTool: (v: EditorTool | undefined) => void;
   crossHairVisibility: boolean;
   setCrossHairVisibility: (v: boolean) => void;
+  autoFillBetweenSlices: boolean;
+  setAutoFillBetweenSlices: (v: boolean) => void;
 
   activeLabel: EditorLabel;
   setActiveLabel: (v: EditorLabel) => void;
@@ -58,6 +60,7 @@ export const ThreeDEditorProvider = ({
   const [label3dVisibility, setLabel3dVisibility] = useState<boolean>(false);
   const [activeTool ,setActiveTool] = useState<EditorTool>();
   const [crossHairVisibility, setCrossHairVisibility] = useState<boolean>(true);
+  const [autoFillBetweenSlices, setAutoFillBetweenSlices] = useState<boolean>(false);
 
   const labelsData: EditorLabel[] = [
     {
@@ -254,6 +257,11 @@ export const ThreeDEditorProvider = ({
     context.painter.setLabel(activeLabel.maskValue);
   }, [activeLabel, context]);
 
+  useEffect(() => {
+    if (!context) return;
+    context.painter.setAutoFillBetweenSlices(autoFillBetweenSlices);
+  }, [autoFillBetweenSlices, context]);
+
   const renderAllWindows = () => {
     if (!context) return;
     const {windowVolume, windowsSliceArray} = context;
@@ -280,6 +288,9 @@ export const ThreeDEditorProvider = ({
     setActiveTool,
     crossHairVisibility,
     setCrossHairVisibility,
+    autoFillBetweenSlices,
+    setAutoFillBetweenSlices,
+
     activeLabel,
     setActiveLabel,
     labels,
