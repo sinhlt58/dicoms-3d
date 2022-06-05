@@ -11,6 +11,7 @@ export const ThreeDEditorNav = ({
 
 }: Props) => {
   const {
+    renderAllWindows,
     volume3dVisibility,
     setVolume3dVisibility,
     slices3dVisibility,
