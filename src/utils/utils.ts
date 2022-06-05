@@ -1,3 +1,7 @@
+import vtkImageData from "@kitware/vtk.js/Common/DataModel/ImageData";
+import { readImageArrayBuffer, readImageDICOMFileSeries } from "itk-wasm";
+import { itkHelper } from "../itk_import";
+
 export type CSSClass = string | { [key: string]: boolean };
 export function classnames(...cssClasses: CSSClass[]): string {
   let classes = [];
@@ -35,4 +39,18 @@ export function downloadBlob(blob: Blob, fileName: string) {
   link.href = blobUrl;
   link.download = fileName;
   link.click();
+}
+
+export async function dicomFilesToVTKImage(files: File[]) {
+  const res = await readImageDICOMFileSeries(files);
+  const {image: itkImage} = res as any; 
+  const vtkImage: vtkImageData = itkHelper.convertItkToVtkImage(itkImage) as vtkImageData;
+  return vtkImage;
+}
+
+export async function fileToVTKImage(file: File) {
+  const arrayBuffer = await file.arrayBuffer();
+  const {image: itkImage} = await readImageArrayBuffer(null, arrayBuffer, file.name, "");
+  const vtkImage: vtkImageData = itkHelper.convertItkToVtkImage(itkImage) as vtkImageData;
+  return vtkImage;
 }

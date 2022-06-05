@@ -1,10 +1,10 @@
 import vtkImageData from '@kitware/vtk.js/Common/DataModel/ImageData';
-import { readImageArrayBuffer, readImageDICOMFileSeries } from 'itk-wasm';
+import { readImageArrayBuffer } from 'itk-wasm';
 import { useState } from 'react';
 import './App.css';
-import { helper } from './helper';
 import { ThreeDEditorProvider } from './components/threeD-editor.provider';
 import vtkITKImageReader from '@kitware/vtk.js/IO/Misc/ITKImageReader';
+import { dicomFilesToVTKImage, fileToVTKImage } from './utils/utils';
 
 vtkITKImageReader.setReadImageArrayBufferFromITK(readImageArrayBuffer);
 
@@ -14,20 +14,14 @@ function App() {
 
   const handleFileChanged = async (e: any) => {
     const files = e.target.files;
-    console.log("Reading dicoms...");
-    const res = await readImageDICOMFileSeries(files);
-    console.log("Done reading dicoms!");
-    const {image: itkImage} = res as any; 
-    const vtkImage: vtkImageData = helper.convertItkToVtkImage(itkImage) as vtkImageData;
+    const vtkImage: vtkImageData = await dicomFilesToVTKImage(files);
     setVtkImage(vtkImage);
     e.target.value = null; // no need to keep this in the memory
   }
 
   const handleFileNifti = async (e: any) => {
     const file: File = e.target.files[0];
-    const arrayBuffer = await file.arrayBuffer();
-    const {image: itkImage} = await readImageArrayBuffer(null, arrayBuffer, file.name, "");
-    const vtkImage: vtkImageData = helper.convertItkToVtkImage(itkImage) as vtkImageData;
+    const vtkImage: vtkImageData = await fileToVTKImage(file);
     setVtkImage(vtkImage);
     e.target.value = null; // no need to keep this in the memory
   }

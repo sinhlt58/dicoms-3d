@@ -1,8 +1,6 @@
 import vtkImageData from "@kitware/vtk.js/Common/DataModel/ImageData";
-import { readImageArrayBuffer } from "itk-wasm";
 import { Fragment, useRef } from "react";
-import { helper } from "../helper";
-import { classnames } from "../utils/utils";
+import { classnames, fileToVTKImage } from "../utils/utils";
 import { EditorLabel, EditorTool, EditorToolType } from "./editor.models";
 import { useThreeDEditorContext } from "./threeD-editor.provider"
 
@@ -85,9 +83,7 @@ export const ThreeDEditorNav = ({
 
   const handleLoadLabelMapInputChanged = async (e: any) => {
     const file: File = e.target.files[0];
-    const arrayBuffer = await file.arrayBuffer();
-    const {image: itkImage} = await readImageArrayBuffer(null, arrayBuffer, file.name, "");
-    const vtkImage: vtkImageData = helper.convertItkToVtkImage(itkImage) as vtkImageData;
+    const vtkImage: vtkImageData = await fileToVTKImage(file);
     e.target.value = null; // no need to keep this in the memory
     loadLabelMap(vtkImage);
   }
