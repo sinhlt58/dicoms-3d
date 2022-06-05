@@ -36,6 +36,10 @@ function vtkPaintFilterCustom(publicAPI, model) {
     history.index++;
   } // --------------------------------------------------------------------------
 
+  // sinhlt added
+  publicAPI.clearHistory = function() {
+    resetHistory();
+  }
 
   publicAPI.startStroke = function () {
     if (model.labelMap) {
@@ -78,11 +82,11 @@ function vtkPaintFilterCustom(publicAPI, model) {
     for (var i = 0; i < maskLabelMap.length; i++) {
       // maskLabelMap is a binary mask
       diffCount += maskLabelMap[i];
-    } // Format: [ [index, oldLabel], ...]
+    }
+    
+    // Format: [ [index, oldLabel], ...]
     // I could use an ArrayBuffer, which would place limits
     // on the values of index/old, but will be more efficient.
-
-
     var snapshot = new Array(diffCount);
     var label = model.label;
     var diffIdx = 0;
@@ -112,12 +116,66 @@ function vtkPaintFilterCustom(publicAPI, model) {
     }
 
     pushToHistory(snapshot, label);
+    fillBetweenSnapshots(data);
     scalars.setData(data);
     scalars.modified();
     model.labelMap.modified();
     publicAPI.modified();
   }; // --------------------------------------------------------------------------
 
+  // sinhlt added
+  function fillBetweenSnapshots(data) {
+    if (model.slicingMode === null) return; // not support for 3D
+    if (history.index < 1) return;
+    const firstLabel = history.labels[history.index - 1];
+    const secondLabel = history.labels[history.index];
+
+    if (firstLabel !== secondLabel || !firstLabel || !secondLabel) return;
+
+    const firstSnapshot = history.snapshots[history.index - 1]
+    const secondSnapshot = history.snapshots[history.index];
+
+    if (firstSnapshot.length <= 0 || secondSnapshot.length <= 0) return;
+
+    const firstFirstPoint = firstSnapshot[0];
+    const secondFirstPoint = secondSnapshot[0];
+
+    if (!firstFirstPoint || !secondFirstPoint) return;
+    const axis = model.slicingMode;
+
+    const toIjk = (index) => {
+      return model.labelMap.worldToIndex(model.labelMap.getPoint(index));
+    }
+    const ijkFirstFirstPoint = toIjk(firstFirstPoint[0]);
+    const ijkSecondFirstPoint = toIjk(secondFirstPoint[0]);
+
+    const firstSlice = Math.floor(ijkFirstFirstPoint[axis]);
+    const secondSlice = Math.floor(ijkSecondFirstPoint[axis]);
+
+    if (firstSlice === secondSlice) return;
+
+    const minSLice = Math.min(firstSlice, secondSlice);
+    const maxSlice = Math.max(firstSlice, secondSlice);
+
+    for (let i=0; i<secondSnapshot.length; i++){
+      if (!secondSnapshot[i][0]) continue;
+      const ijkPos = toIjk(secondSnapshot[i][0]);
+      // check label at pos of the first slice
+      ijkPos[axis] = firstSlice; 
+      const worldPos = model.labelMap.indexToWorld(ijkPos);
+      const labelValue = model.labelMap.getScalarValueFromWorld(worldPos);
+      // we use intersection
+      if (labelValue === model.label) {
+        for (let slice = minSLice + 1; slice < maxSlice; slice++) {
+          ijkPos[axis] = slice;
+          const index = model.labelMap.computeOffsetIndex(ijkPos);
+          if (! isNaN(index)) {
+            data[index] = model.label;
+          }
+        }
+      }
+    }
+  }
 
   publicAPI.addPoint = function (point) {
     if (workerPromise) {

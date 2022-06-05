@@ -394,6 +394,8 @@ export const WindowSlicer = forwardRef(({
 
   const handleContainerOnMouseLeave = () => {
     setActiveWindow(-1);
+    if (!context) return;
+    context.painter.clearHistory();
   }
 
   const handleContainerOnMouseMove = () => {
