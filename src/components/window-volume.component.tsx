@@ -25,6 +25,7 @@ export const WindowVolume = ({
 
   const [realTimeUpdate, setRealTimeUpdate] = useState<boolean>(false);
   const realTimeUpdateRef = useRef<boolean>(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     realTimeUpdateRef.current = realTimeUpdate;
@@ -143,8 +144,10 @@ export const WindowVolume = ({
   }
 
   const handleRefreshClick = () => {
-    if (!editorContext) return;
+    if (!editorContext || isRefreshing) return;
+    setIsRefreshing(true);
     editorContext.windowVolume.renderWindow.render();
+    setIsRefreshing(false);
   }
 
   return (
@@ -171,8 +174,9 @@ export const WindowVolume = ({
           <span>Real time</span>
         </div>
         <button
-          className="border rounded px-4 py-1"
+          className="border rounded px-4 py-1 disabled:opacity-50"
           onClick={handleRefreshClick}
+          disabled={isRefreshing}
         >
           Refresh
         </button>

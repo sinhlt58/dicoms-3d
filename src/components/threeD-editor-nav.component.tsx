@@ -1,5 +1,5 @@
 import vtkImageData from "@kitware/vtk.js/Common/DataModel/ImageData";
-import { Fragment, useRef } from "react";
+import { Fragment, useRef, useState } from "react";
 import { classnames, fileToVTKImage } from "../utils/utils";
 import { EditorLabel, EditorTool, EditorToolType } from "./editor.models";
 import { useThreeDEditorContext } from "./threeD-editor.provider"
@@ -34,6 +34,7 @@ export const ThreeDEditorNav = ({
   } = useThreeDEditorContext();
 
   const inputLoadLabelMapRef = useRef<HTMLInputElement>(null);
+  const [isProcesing, setIsProcessing] = useState(false);
 
   const tools: EditorTool[] = [
     {
@@ -77,15 +78,22 @@ export const ThreeDEditorNav = ({
     }));
   }
 
-  const handleSaveLabelClick = () => {
-    saveLabelMap()
+  const handleSaveLabelClick = async () => {
+    if (isProcesing) return;
+    setIsProcessing(true);
+    await saveLabelMap()
+    setIsProcessing(false);
   }
 
   const handleLoadLabelMapInputChanged = async (e: any) => {
+    if (isProcesing) return;
+    
+    setIsProcessing(true);
     const file: File = e.target.files[0];
     const vtkImage: vtkImageData = await fileToVTKImage(file);
     e.target.value = null; // no need to keep this in the memory
     loadLabelMap(vtkImage);
+    setIsProcessing(false);
   }
 
   return (
@@ -202,14 +210,16 @@ export const ThreeDEditorNav = ({
         <p className="font-bold">IO</p>
         <div className="flex items-center gap-1">
           <button
-            className="border rounded px-4 py-1"
+            className="border rounded px-4 py-1 disabled:opacity-50"
             onClick={handleSaveLabelClick}
+            disabled={isProcesing}
           >
             Save labels
           </button>
           <button
-            className="border rounded px-4 py-1"
+            className="border rounded px-4 py-1 disabled:opacity-50"
             onClick={() => inputLoadLabelMapRef.current?.click()}
+            disabled={isProcesing}
           >
             Load labels
           </button>
