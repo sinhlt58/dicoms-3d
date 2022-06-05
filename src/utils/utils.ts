@@ -15,7 +15,6 @@ export function classnames(...cssClasses: CSSClass[]): string {
   return classes.join(" ");
 }
 
-
 export function hexToRgb(hex: string, normalize = true) {
   hex = hex.replace("#", "");
   const bigint = parseInt(hex, 16);
@@ -30,3 +29,10 @@ export function hexToRgb(hex: string, normalize = true) {
   return [r, g, b];
 }
 
+export function downloadBlob(blob: Blob, fileName: string) {
+  const blobUrl = URL.createObjectURL(blob);
+  const link = document.createElement("a"); // Or maybe get it from the current document
+  link.href = blobUrl;
+  link.download = fileName;
+  link.click();
+}

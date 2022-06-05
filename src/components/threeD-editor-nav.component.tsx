@@ -1,4 +1,7 @@
-import { Fragment } from "react";
+import vtkImageData from "@kitware/vtk.js/Common/DataModel/ImageData";
+import { readImageArrayBuffer } from "itk-wasm";
+import { Fragment, useRef } from "react";
+import { helper } from "../helper";
 import { classnames } from "../utils/utils";
 import { EditorLabel, EditorTool, EditorToolType } from "./editor.models";
 import { useThreeDEditorContext } from "./threeD-editor.provider"
@@ -28,7 +31,11 @@ export const ThreeDEditorNav = ({
     setActiveLabel,
     labels,
     setLabels,
+    saveLabelMap,
+    loadLabelMap,
   } = useThreeDEditorContext();
+
+  const inputLoadLabelMapRef = useRef<HTMLInputElement>(null);
 
   const tools: EditorTool[] = [
     {
@@ -72,8 +79,21 @@ export const ThreeDEditorNav = ({
     }));
   }
 
+  const handleSaveLabelClick = () => {
+    saveLabelMap()
+  }
+
+  const handleLoadLabelMapInputChanged = async (e: any) => {
+    const file: File = e.target.files[0];
+    const arrayBuffer = await file.arrayBuffer();
+    const {image: itkImage} = await readImageArrayBuffer(null, arrayBuffer, file.name, "");
+    const vtkImage: vtkImageData = helper.convertItkToVtkImage(itkImage) as vtkImageData;
+    e.target.value = null; // no need to keep this in the memory
+    loadLabelMap(vtkImage);
+  }
+
   return (
-    <div className="border-r-2 border-grey-200 p-4"
+    <div className="flex flex-col gap-4 border-r-2 border-grey-200 p-4"
       style={{
         width: "280px"
       }}
@@ -108,7 +128,7 @@ export const ThreeDEditorNav = ({
         </div>
       </div>
 
-      <div className="mt-4 flex flex-col gap-2">
+      <div className="flex flex-col gap-2">
         <p className="font-bold">Tools</p>
         <div className="flex items-center gap-2 flex-wrap">
           {
@@ -146,7 +166,7 @@ export const ThreeDEditorNav = ({
         </div>
       </div>
 
-      <div className="mt-4">
+      <div className="">
         <p className="font-bold">Labels</p>
         {
           labels.map(label => {
@@ -180,6 +200,31 @@ export const ThreeDEditorNav = ({
             )
           })
         }
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <p className="font-bold">IO</p>
+        <div className="flex items-center gap-1">
+          <button
+            className="border rounded px-4 py-1"
+            onClick={handleSaveLabelClick}
+          >
+            Save labels
+          </button>
+          <button
+            className="border rounded px-4 py-1"
+            onClick={() => inputLoadLabelMapRef.current?.click()}
+          >
+            Load labels
+          </button>
+          <input
+            ref={inputLoadLabelMapRef}
+            className="hidden"
+            type="file"
+            onClick={(e: any) => e.target.value = null}
+            onChange={handleLoadLabelMapInputChanged}
+          />
+        </div>
       </div>
     </div>
   )

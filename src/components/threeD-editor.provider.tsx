@@ -6,7 +6,10 @@ import vtkImageSlice from "@kitware/vtk.js/Rendering/Core/ImageSlice";
 import vtkVolume from "@kitware/vtk.js/Rendering/Core/Volume";
 import vtkVolumeMapper from "@kitware/vtk.js/Rendering/Core/VolumeMapper";
 import vtkGenericRenderWindow from "@kitware/vtk.js/Rendering/Misc/GenericRenderWindow";
+import { writeImageArrayBuffer } from "itk-wasm";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { helper } from "../helper";
+import { downloadBlob } from "../utils/utils";
 import { SlicingMode, ViewTypes, vtkPaintFilterCustom, vtkPaintWidget, vtkResliceCursorWidget, vtkSplineWidget, vtkWidgetManager, xyzToViewType } from "../vtk_import";
 import { EditorLabel, EditorTool } from "./editor.models";
 import { ThreeDEditorNav } from "./threeD-editor-nav.component";
@@ -39,6 +42,8 @@ interface ThreeDEditorState {
 
   labels: EditorLabel[];
   setLabels: (v: EditorLabel[]) => void;
+  saveLabelMap: () => void;
+  loadLabelMap: (v: vtkImageData) => void;
 }
 
 export const ThreeDEditorContext = createContext({} as ThreeDEditorState);
@@ -270,6 +275,20 @@ export const ThreeDEditorProvider = ({
       windowSliceData.windowSlice.renderWindow.render();
     }
   }
+
+  const saveLabelMap = async () => {
+    if (!context) return;
+    const labelMap = context.painter.getLabelMap();
+    const itkImage = helper.convertVtkToItkImage(labelMap);
+    const {arrayBuffer: buffer} = await writeImageArrayBuffer(null, itkImage, "labelMap.nii");
+    const blob = new Blob([buffer]);
+    downloadBlob(blob, "labelMap.nii");
+  }
+
+  const loadLabelMap = (vtkImage: vtkImageData) => {
+    if (!context) return;
+    context.painter.setLabelMap(vtkImage);
+  }
   
   const value: ThreeDEditorState = {
     editorContext: context,
@@ -295,6 +314,8 @@ export const ThreeDEditorProvider = ({
     setActiveLabel,
     labels,
     setLabels,
+    saveLabelMap,
+    loadLabelMap,
   };
 
   return (
