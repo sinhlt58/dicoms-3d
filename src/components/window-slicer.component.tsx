@@ -71,7 +71,11 @@ export const WindowSlicer = forwardRef(({
     const widgetState = widgets.resliceCursorWidget.getWidgetState();
     let center = widgetState.getCenter();
     const ijkCenter = imageData.worldToIndex(center);
-    let slice = image.mapper.getSlice()
+    let slice = image.mapper.getSlice();
+    if (slice < 0) {
+      slice = 0;
+      image.mapper.setSlice(0);
+    }
     ijkCenter[axis] = slice;
     // move center
     center = imageData.indexToWorld(ijkCenter);
@@ -213,6 +217,14 @@ export const WindowSlicer = forwardRef(({
     }: any) => {
       if (!crossHairVisibilityRef.current) return;
       moveSliceToResliceCursor(axis, widgets, image, imageData);
+      for (const sliceData of otherSlicesData) {
+        moveSliceToResliceCursor(sliceData.axis, widgets, sliceData.imageSlice.image, imageData);
+      }
+    });
+
+    handles.resliceCursorHandle.onEndInteractionEvent(() => {
+      // handle scroll case
+      moveResliceCursorToSlice(axis, widgets, imageData, image);
       for (const sliceData of otherSlicesData) {
         moveSliceToResliceCursor(sliceData.axis, widgets, sliceData.imageSlice.image, imageData);
       }
