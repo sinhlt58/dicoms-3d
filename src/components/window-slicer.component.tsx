@@ -3,7 +3,7 @@ import vtkImageData from "@kitware/vtk.js/Common/DataModel/ImageData";
 import vtkRenderer from "@kitware/vtk.js/Rendering/Core/Renderer";
 import { Vector3 } from "@kitware/vtk.js/types";
 import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { CaptureOn, SlicingMode, vtkInteractorStyleImage } from "../vtk_import";
+import { CaptureOn, SlicingMode, vtkInteractorStyleImageCustom } from "../vtk_import";
 import { useThreeDEditorContext } from "./threeD-editor.provider";
 import { EditorToolType } from "./editor.models";
 import { classnames, hexToRgb } from "../utils/utils";
@@ -118,10 +118,10 @@ export const WindowSlicer = forwardRef(({
     const {image, labelMap} = imageSlice;
 
     // set 2D view
-    camera.setParallelProjection(true);
-    const isstyle = vtkInteractorStyleImage.newInstance();
+    const isstyle = vtkInteractorStyleImageCustom.newInstance();
     isstyle.setInteractionMode("IMAGE_SLICING");
     renderWindow.getInteractor().setInteractorStyle(isstyle);
+    camera.setParallelProjection(true);
 
     const setCamera = (sliceMode: any, renderer: vtkRenderer, data: vtkImageData) => {
       const ijk: Vector3 = [0, 0, 0];
@@ -235,8 +235,9 @@ export const WindowSlicer = forwardRef(({
     // set input data
     image.mapper.setInputData(imageData);
     // add actors to renderers
-    renderer.addActor(image.actor);
-    renderer.addActor(labelMap.actor);
+    renderer.addViewProp(image.actor);
+    renderer.addViewProp(labelMap.actor);
+    isstyle.setCurrentImageProperty(image.actor.getProperty());
 
     // set slicing mode
     image.mapper.setSlicingMode(axis);
