@@ -123,11 +123,6 @@ export const WindowSlicer = forwardRef(({
     renderWindow.getInteractor().setInteractorStyle(isstyle);
     camera.setParallelProjection(true);
 
-    const interactor = renderWindow.getInteractor();
-    interactor.onKeyDown(() => {
-      console.log("onKeyDown");
-    })
-
     const setCamera = (sliceMode: any, renderer: vtkRenderer, data: vtkImageData) => {
       const ijk: Vector3 = [0, 0, 0];
       const position: Vector3 = [0, 0, 0];
@@ -312,6 +307,7 @@ export const WindowSlicer = forwardRef(({
     if (!context) return;
     const {handles, renderWindow} = context;
     handles.resliceCursorHandle.setVisibility(crossHairVisibility);
+    handles.resliceCursorHandle.setEnabled(crossHairVisibility);
     renderWindow.render();
 
   }, [crossHairVisibility, context]);

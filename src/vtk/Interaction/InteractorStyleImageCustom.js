@@ -20,7 +20,7 @@ function vtkInteractorStyleImageCustom(publicAPI, model) {
 
 
   publicAPI.handleMouseWheel = function () {
-    console.log("handleMouseWheel");
+    console.log("wheel");
   }; //----------------------------------------------------------------------------
 
 } // ----------------------------------------------------------------------------
@@ -35,7 +35,7 @@ function extend(publicAPI, model) {
   var initialValues = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
   Object.assign(model, DEFAULT_VALUES, initialValues); // Inheritance
 
-  vtkInteractorStyle.extend(publicAPI, model, initialValues); // Create get-set macros
+  vtkInteractorStyleImage.extend(publicAPI, model, initialValues); // Create get-set macros
 
   vtkInteractorStyleImageCustom(publicAPI, model);
 } // ----------------------------------------------------------------------------
