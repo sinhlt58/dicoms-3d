@@ -119,9 +119,14 @@ export const WindowSlicer = forwardRef(({
 
     // set 2D view
     const isstyle = vtkInteractorStyleImageCustom.newInstance();
-    isstyle.setInteractionMode("IMAGE_SLICING");
+    // isstyle.setInteractionMode("IMAGE_SLICING");
     renderWindow.getInteractor().setInteractorStyle(isstyle);
     camera.setParallelProjection(true);
+
+    const interactor = renderWindow.getInteractor();
+    interactor.onKeyDown(() => {
+      console.log("onKeyDown");
+    })
 
     const setCamera = (sliceMode: any, renderer: vtkRenderer, data: vtkImageData) => {
       const ijk: Vector3 = [0, 0, 0];
@@ -237,7 +242,6 @@ export const WindowSlicer = forwardRef(({
     // add actors to renderers
     renderer.addViewProp(image.actor);
     renderer.addViewProp(labelMap.actor);
-    isstyle.setCurrentImageProperty(image.actor.getProperty());
 
     // set slicing mode
     image.mapper.setSlicingMode(axis);
@@ -415,7 +419,8 @@ export const WindowSlicer = forwardRef(({
   }
 
   return (
-    <div className={classnames(
+    <div
+      className={classnames(
       "w-full h-full relative",
       {"border-2 border-white": !isWindowActive},
       {"border-2 border-blue-400": isWindowActive},

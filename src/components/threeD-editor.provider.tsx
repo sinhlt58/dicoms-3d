@@ -178,9 +178,15 @@ export const ThreeDEditorProvider = ({
       if (axis === SlicingMode.K) {
         sliceRef = sliceKRef;
       }
+      sliceRef?.current?.addEventListener('wheel', () => {
+        console.log("wheel")
+      });
+      const container = sliceRef?.current as HTMLDivElement;
+      console.log(container)
       windowSlice.genericRenderWindow.setContainer(sliceRef?.current as HTMLDivElement);
       windowSlice.genericRenderWindow.resize();
       windowSlice.widgetManager.setRenderer(windowSlice.renderer);
+      
       // init handle widgets
       const  handles = {
         paintHandle: windowSlice.widgetManager.addWidget(widgets.paintWidget, ViewTypes.SLICE),
