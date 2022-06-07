@@ -9,6 +9,18 @@ function vtkInteractorStyleImageCustom(publicAPI, model) {
   // Set our className
   model.classHierarchy.push('vtkInteractorStyleImageCustom'); // Public API methods
 
+  publicAPI.handleKeyPress = function (callData) {
+
+  }
+
+  publicAPI.handleKeyUp = function (callData) {
+    console.log("handleKeyUp")
+  }
+
+  publicAPI.handleKeyDown = function (callData) {
+    console.log("handleKeyDown")
+  }
+
   publicAPI.handleStartMouseWheel = function (callData) {
     console.log("start");
   }; //--------------------------------------------------------------------------
