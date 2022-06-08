@@ -271,13 +271,12 @@ export const ThreeDEditorNav = ({
             />
         </div>
         <div className="flex items-center justify-between">
-            <span>CL: {sliceColorLevel.toFixed(2)}</span>
+            <span>CL: {sliceColorLevel.toFixed(1)}</span>
             <input
               type="range"
-              value={sliceColorLevel.toFixed(2)}
+              value={sliceColorLevel.toFixed(1)}
               min={0}
-              max={100}
-              step={0.01}
+              max={255}
               onChange={(e) => handleSliceColorChanged(parseFloat(e.target.value), "level")}
             />
         </div>
