@@ -12,9 +12,80 @@ function vtkInteractorStyleImageCustom(publicAPI, model) {
   model.classHierarchy.push('vtkInteractorStyleImageCustom'); // Public API methods
 
   let sliceSumSpinY = 0;
+  let cameraFirstUp = undefined;
+
+  publicAPI.handleMouseMove = function (callData) {
+    var pos = callData.position;
+    var renderer = callData.pokedRenderer;
+
+    switch (model.state) {
+      case States.IS_ROTATE:
+        publicAPI.handleMouseRotate(renderer, pos);
+        publicAPI.invokeInteractionEvent({
+          type: 'InteractionEvent'
+        });
+        break;
+
+      case States.IS_PAN:
+        publicAPI.handleMousePan(renderer, pos);
+        publicAPI.invokeInteractionEvent({
+          type: 'InteractionEvent'
+        });
+        break;
+
+      case States.IS_DOLLY:
+        publicAPI.handleMouseDolly(renderer, pos);
+        publicAPI.invokeInteractionEvent({
+          type: 'InteractionEvent'
+        });
+        break;
+
+      case States.IS_SPIN:
+        publicAPI.handleMouseSpin(renderer, pos);
+        console.log("Spin")
+        publicAPI.invokeInteractionEvent({
+          type: 'InteractionEvent'
+        });
+        break;
+    }
+
+    model.previousPosition = pos;
+  };
+
+  publicAPI.handleLeftButtonPress = function (callData) {
+    var pos = callData.position;
+    model.previousPosition = pos;
+
+    if (callData.shiftKey) {
+      if (callData.controlKey || callData.altKey) {
+        publicAPI.startDolly();
+      } else {
+        publicAPI.startPan();
+      }
+    } else {
+      if (callData.controlKey || callData.altKey) {
+        if (!cameraFirstUp) {
+          cameraFirstUp = model.renderer.getActiveCamera().getViewUp();
+        }
+        publicAPI.startSpin();
+      }
+    }
+  }; //--------------------------------------------------------------------------
 
   publicAPI.handleKeyPress = function (callData) {
-
+    if (!model.isWindowActive) return;
+    var rwi = model._interactor;
+    switch(callData.key) {
+      case "R":
+      case "r":
+        if (cameraFirstUp) {
+          model.renderer.getActiveCamera().setViewUp(cameraFirstUp);
+        }
+        const bounds = model.image.actor.getBounds();
+        model.renderer.resetCamera(bounds);
+        rwi.render();
+        break;
+    }
   }
 
   publicAPI.handleKeyUp = function (callData) {
@@ -27,15 +98,29 @@ function vtkInteractorStyleImageCustom(publicAPI, model) {
 
   publicAPI.handleStartMouseWheel = function (callData) {
     if (!model.enabled || !model.enabledSlice) return;
-    publicAPI.startSlice();
-    sliceSumSpinY = 0;
-    publicAPI.handleMouseWheel(callData);
+
+    if (callData.shiftKey) {
+      publicAPI.startDolly();
+      publicAPI.handleMouseWheel(callData);
+    } else if (model.enabledSlice) {
+      publicAPI.startSlice();
+      sliceSumSpinY = 0;
+      publicAPI.handleMouseWheel(callData);
+    }
   }; //--------------------------------------------------------------------------
 
 
   publicAPI.handleEndMouseWheel = function (callData) {
     if (!model.enabled || !model.enabledSlice) return;
-    publicAPI.endSlice();
+
+    switch (model.state) {
+      case States.IS_SLICE:
+        publicAPI.endSlice();
+        break;
+      case States.IS_DOLLY:
+        publicAPI.endDolly();
+        break;
+    }
   }; //--------------------------------------------------------------------------
 
 
@@ -56,6 +141,10 @@ function vtkInteractorStyleImageCustom(publicAPI, model) {
         model.image.mapper.setSlice(slice);
         sliceSumSpinY = 0;
         break;
+      case States.IS_DOLLY:
+        var dyf = 1 - spinY / model.zoomFactor;
+        publicAPI.dollyByFactor(model.renderer, dyf);
+        break;
     }
   }; //----------------------------------------------------------------------------
 
@@ -66,6 +155,7 @@ function vtkInteractorStyleImageCustom(publicAPI, model) {
 
 var DEFAULT_VALUES = {
   image: null,
+  renderer: null,
   widgetManager: null,
   isWindowActive: false,
   enabledSlice: true,

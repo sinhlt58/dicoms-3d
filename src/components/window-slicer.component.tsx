@@ -135,6 +135,7 @@ export const WindowSlicer = forwardRef(({
     // set 2D view
     const isstyle = vtkInteractorStyleImageCustom.newInstance({
       image,
+      renderer,
       widgetManager,
       minSlice,
       maxSlice,
