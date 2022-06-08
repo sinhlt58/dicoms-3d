@@ -42,15 +42,24 @@ function vtkInteractorStyleImageCustom(publicAPI, model) {
 
       case States.IS_SPIN:
         publicAPI.handleMouseSpin(renderer, pos);
-        console.log("Spin")
         publicAPI.invokeInteractionEvent({
           type: 'InteractionEvent'
         });
         break;
+
+      case States.IS_WINDOW_LEVEL:
+        publicAPI.windowLevel(renderer, pos);
+        publicAPI.invokeInteractionEvent({
+          type: 'InteractionEvent'
+        });
+        break;
+
+      default:
     }
 
     model.previousPosition = pos;
-  };
+  }; //----------------------------------------------------------------------------
+
 
   publicAPI.handleLeftButtonPress = function (callData) {
     var pos = callData.position;
@@ -62,15 +71,50 @@ function vtkInteractorStyleImageCustom(publicAPI, model) {
       } else {
         publicAPI.startPan();
       }
-    } else {
-      if (callData.controlKey || callData.altKey) {
-        if (!cameraFirstUp) {
-          cameraFirstUp = model.renderer.getActiveCamera().getViewUp();
-        }
-        publicAPI.startSpin();
+    } else if (callData.controlKey || callData.altKey) {
+      if (!cameraFirstUp) {
+        cameraFirstUp = model.renderer.getActiveCamera().getViewUp();
       }
+      publicAPI.startSpin();
+    } else {
+      model.windowLevelStartPosition[0] = pos.x;
+      model.windowLevelStartPosition[1] = pos.y; // Get the last (the topmost) image
+
+      const property = model.image.actor.getProperty();
+      model.windowLevelInitial[0] = property.getColorWindow();
+      model.windowLevelInitial[1] = property.getColorLevel();
+    
+      publicAPI.startWindowLevel();
     }
   }; //--------------------------------------------------------------------------
+
+  
+  publicAPI.handleLeftButtonRelease = function () {
+    switch (model.state) {
+      case States.IS_DOLLY:
+        publicAPI.endDolly();
+        break;
+
+      case States.IS_PAN:
+        publicAPI.endPan();
+        break;
+
+      case States.IS_SPIN:
+        publicAPI.endSpin();
+        break;
+
+      case States.IS_ROTATE:
+        publicAPI.endRotate();
+        break;
+
+      case States.IS_WINDOW_LEVEL:
+        publicAPI.endWindowLevel();
+        break;
+
+      default:
+    }
+  }; //----------------------------------------------------------------------------
+  
 
   publicAPI.handleKeyPress = function (callData) {
     if (!model.isWindowActive) return;
@@ -85,6 +129,7 @@ function vtkInteractorStyleImageCustom(publicAPI, model) {
         model.renderer.resetCamera(bounds);
         rwi.render();
         break;
+      default:
     }
   }
 
@@ -120,6 +165,7 @@ function vtkInteractorStyleImageCustom(publicAPI, model) {
       case States.IS_DOLLY:
         publicAPI.endDolly();
         break;
+      default:
     }
   }; //--------------------------------------------------------------------------
 
@@ -145,7 +191,54 @@ function vtkInteractorStyleImageCustom(publicAPI, model) {
         var dyf = 1 - spinY / model.zoomFactor;
         publicAPI.dollyByFactor(model.renderer, dyf);
         break;
+      default:
     }
+  }; //----------------------------------------------------------------------------
+
+  publicAPI.windowLevel = function (renderer, position) {
+    model.windowLevelCurrentPosition[0] = position.x;
+    model.windowLevelCurrentPosition[1] = position.y;
+    var rwi = model._interactor;
+
+    const property = model.image.actor.getProperty();
+    var size = rwi.getView().getViewportSize(renderer);
+    var mWindow = model.windowLevelInitial[0];
+    var level = model.windowLevelInitial[1]; // Compute normalized delta
+
+    var dx = (model.windowLevelCurrentPosition[0] - model.windowLevelStartPosition[0]) * 4.0 / size[0];
+    var dy = (model.windowLevelStartPosition[1] - model.windowLevelCurrentPosition[1]) * 4.0 / size[1]; // Scale by current values
+
+    if (Math.abs(mWindow) > 0.01) {
+      dx *= mWindow;
+    } else {
+      dx *= mWindow < 0 ? -0.01 : 0.01;
+    }
+
+    if (Math.abs(level) > 0.01) {
+      dy *= level;
+    } else {
+      dy *= level < 0 ? -0.01 : 0.01;
+    } // Abs so that direction does not flip
+
+
+    if (mWindow < 0.0) {
+      dx *= -1;
+    }
+
+    if (level < 0.0) {
+      dy *= -1;
+    } // Compute new mWindow level
+
+
+    var newWindow = dx + mWindow;
+    var newLevel = level - dy;
+
+    if (newWindow < 0.01) {
+      newWindow = 0.01;
+    }
+
+    property.setColorWindow(newWindow);
+    property.setColorLevel(newLevel);
   }; //----------------------------------------------------------------------------
 
 } // ----------------------------------------------------------------------------

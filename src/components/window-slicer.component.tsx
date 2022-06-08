@@ -19,11 +19,6 @@ export const WindowSlicer = forwardRef(({
   const [currentSlice, setCurrentSlice] = useState(0);
   const [maxSlice, setMaxSlice] = useState(0);
   const [minSlice, setMinSlice] = useState(0);
-  const [colorWindow, setColorWindow] = useState(255);
-  const [colorLevel, setColorLevel] = useState(2);
-  // camera
-  const [cameraZoom, setCameraZoom] = useState(1);
-  const cameraParallelScaleRef = useRef<number>();
 
   const {
     activeWindow,
@@ -270,7 +265,6 @@ export const WindowSlicer = forwardRef(({
     update(image, imageData, widgets, painter, handles, labelMap);
     setCamera(axis, renderer, imageData);
 
-    cameraParallelScaleRef.current = camera.getParallelScale();
     renderWindow.render();
 
     const value: any = {
@@ -420,26 +414,6 @@ export const WindowSlicer = forwardRef(({
     }
   }
 
-  const handleColorWindowChanged = (level: number) => {
-    setColorWindow(level);
-    context.image.actor.getProperty().setColorWindow(level);
-    renderAllWindows();
-  }
-
-  const handleColorLevelChanged = (level: number) => {
-    setColorLevel(level);
-    context.image.actor.getProperty().setColorLevel(level);
-    renderAllWindows();
-  }
-
-  const handleCameraZoomChanged = (level: number) => {
-    if (!cameraParallelScaleRef.current) return;
-    setCameraZoom(level);
-    const v = cameraParallelScaleRef.current - (level - 1) * 5;
-    context.camera.setParallelScale(v);
-    context.renderWindow.render();
-  }
-
   const handleContainerOnMouseEnter = () => {
     setActiveWindow(windowId);
   }
@@ -470,50 +444,18 @@ export const WindowSlicer = forwardRef(({
       >
         <span className="absolute top-1 right-1 text-lg font-bold text-white">{axis}</span>
       </div>
-      <div className="absolute top-1 left-1 flex flex-col gap-2 p-2 border rounded bg-white"
+      <div className="absolute top-1 left-1 flex flex-col gap-2 px-1 border rounded bg-white w-1/2 opacity-60"
       >
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full">
+          <span>Slice: {currentSlice}/{maxSlice}</span>
           <input 
+            className="flex-1"
             type="range"
             min={minSlice}
             max={maxSlice}
             value={currentSlice}
             onChange={(e) => handleSliceChanged(parseInt(e.target.value))}
           />
-          <span>Slice: {currentSlice}/{maxSlice}</span>
-        </div>
-        <div className="flex items-center gap-2 hidden">
-          <input 
-            type="range"
-            min="0"
-            max="255"
-            value={colorWindow}
-            step="2"
-            onChange={(e) => handleColorWindowChanged(parseInt(e.target.value))}
-          />
-          <span>Window level: {colorWindow}</span>
-        </div>
-        <div className="flex items-center gap-2 hidden">
-          <input
-            type="range"
-            min="0"
-            max="255"
-            value={colorLevel}
-            step="2"
-            onChange={(e) => handleColorLevelChanged(parseInt(e.target.value))}
-          />
-          <span>Color level: {colorLevel}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <input
-            type="range"
-            min="1"
-            max="200"
-            value={cameraZoom}
-            step="1"
-            onChange={(e) => handleCameraZoomChanged(parseInt(e.target.value))}
-          />
-          <span>Zoom: {cameraZoom}</span>
         </div>
       </div>
     </div>
