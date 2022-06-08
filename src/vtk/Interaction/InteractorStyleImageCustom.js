@@ -49,9 +49,6 @@ function vtkInteractorStyleImageCustom(publicAPI, model) {
 
       case States.IS_WINDOW_LEVEL:
         publicAPI.windowLevel(renderer, pos);
-        publicAPI.invokeInteractionEvent({
-          type: 'InteractionEvent'
-        });
         break;
 
       default:
@@ -239,6 +236,12 @@ function vtkInteractorStyleImageCustom(publicAPI, model) {
 
     property.setColorWindow(newWindow);
     property.setColorLevel(newLevel);
+
+    publicAPI.invokeInteractionEvent({
+      type: 'WindowLevel',
+      newWindow,
+      newLevel,
+    });
   }; //----------------------------------------------------------------------------
 
 } // ----------------------------------------------------------------------------

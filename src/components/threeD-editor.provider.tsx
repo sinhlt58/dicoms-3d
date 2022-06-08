@@ -44,6 +44,11 @@ interface ThreeDEditorState {
   setLabels: (v: EditorLabel[]) => void;
   saveLabelMap: () => void;
   loadLabelMap: (v: vtkImageData) => void;
+  // Lighting
+  sliceWindowLevel: number;
+  setSliceWindowLevel: (v: number) => void;
+  sliceColorLevel: number;
+  setSliceColorLevel: (v: number) => void;
 }
 
 export const ThreeDEditorContext = createContext({} as ThreeDEditorState);
@@ -66,6 +71,9 @@ export const ThreeDEditorProvider = ({
   const [activeTool ,setActiveTool] = useState<EditorTool>();
   const [crossHairVisibility, setCrossHairVisibility] = useState<boolean>(false);
   const [autoFillBetweenSlices, setAutoFillBetweenSlices] = useState<boolean>(false);
+  // Lighting
+  const [sliceWindowLevel, setSliceWindowLevel] = useState(255);
+  const [sliceColorLevel, setSliceColorLevel] = useState(2);
 
   const labelsData: EditorLabel[] = [
     {
@@ -318,6 +326,11 @@ export const ThreeDEditorProvider = ({
     setLabels,
     saveLabelMap,
     loadLabelMap,
+
+    sliceWindowLevel,
+    setSliceColorLevel,
+    sliceColorLevel,
+    setSliceWindowLevel,
   };
 
   return (
@@ -345,18 +358,18 @@ export const ThreeDEditorProvider = ({
           </div>
           <div className="">
             <WindowSlicer
-              ref={sliceJRef}
-              axis={SlicingMode.J}
-              windowId={SlicingMode.J}
-            />
-          </div>
-          <div className="">
-            <WindowSlicer
               ref={sliceKRef}
               axis={SlicingMode.K}
               windowId={SlicingMode.K}
             /> 
           </div>
+          <div className="">
+            <WindowSlicer
+              ref={sliceJRef}
+              axis={SlicingMode.J}
+              windowId={SlicingMode.J}
+            />
+          </div>    
         </div>
       </div>
     </ThreeDEditorContext.Provider>

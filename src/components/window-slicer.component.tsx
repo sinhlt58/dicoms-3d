@@ -24,10 +24,11 @@ export const WindowSlicer = forwardRef(({
     activeWindow,
     setActiveWindow,
     editorContext,
-    renderAllWindows,
     activeTool,
     crossHairVisibility,
     labels,
+    setSliceColorLevel,
+    setSliceWindowLevel,
   } = useThreeDEditorContext();
   const [context, setContext] = useState<any>();
   const isWindowActive = useMemo(() => activeWindow === windowId, [activeWindow, windowId]);
@@ -119,6 +120,7 @@ export const WindowSlicer = forwardRef(({
       widgetManager,
     } = windowSlice;
     const {image, labelMap} = imageSlice;
+    const otherSlicesData = windowsSliceArray.filter((sliceData: any) => sliceData.axis !== axis);
 
     // update panel
     const extent: any = imageData.getExtent();
@@ -135,9 +137,22 @@ export const WindowSlicer = forwardRef(({
       minSlice,
       maxSlice,
     });
-    // isstyle.setInteractionMode("IMAGE_SLICING");
     renderWindow.getInteractor().setInteractorStyle(isstyle);
     camera.setParallelProjection(true);
+
+    isstyle.onInteractionEvent((e: any) => {
+      if (e.type === "WindowLevel") {
+        const {newWindow, newLevel} = e;
+        for (const sliceData of otherSlicesData) {
+          const property = sliceData.imageSlice.image.actor.getProperty();
+          property.setColorWindow(newWindow);
+          property.setColorLevel(newLevel);
+          sliceData.windowSlice.renderWindow.render();
+          setSliceWindowLevel(newWindow);
+          setSliceColorLevel(newLevel);
+        }
+      }
+    });
 
     const setCamera = (sliceMode: any, renderer: vtkRenderer, data: vtkImageData) => {
       const ijk: Vector3 = [0, 0, 0];
@@ -208,7 +223,6 @@ export const WindowSlicer = forwardRef(({
     widgetManager.setCaptureOn(CaptureOn.MOUSE_MOVE);
     handles.resliceCursorHandle.setVisibility(false);
 
-    const otherSlicesData = windowsSliceArray.filter((sliceData: any) => sliceData.axis !== axis);
     handles.resliceCursorHandle.onActivateHandle(() => {
       if (!crossHairVisibilityRef.current) return;
       moveResliceCursorToSlice(axis, widgets, imageData, image);
@@ -294,6 +308,8 @@ export const WindowSlicer = forwardRef(({
     update,
     moveResliceCursorToSlice,
     moveSliceToResliceCursor,
+    setSliceWindowLevel,
+    setSliceColorLevel,
   ]);
 
   useEffect(() => {

@@ -11,7 +11,7 @@ export const ThreeDEditorNav = ({
 
 }: Props) => {
   const {
-    renderAllWindows,
+    editorContext,
     volume3dVisibility,
     setVolume3dVisibility,
     slices3dVisibility,
@@ -32,6 +32,11 @@ export const ThreeDEditorNav = ({
     setLabels,
     saveLabelMap,
     loadLabelMap,
+
+    sliceWindowLevel,
+    setSliceWindowLevel,
+    sliceColorLevel,
+    setSliceColorLevel,
   } = useThreeDEditorContext();
 
   const inputLoadLabelMapRef = useRef<HTMLInputElement>(null);
@@ -95,6 +100,25 @@ export const ThreeDEditorNav = ({
     e.target.value = null; // no need to keep this in the memory
     loadLabelMap(vtkImage);
     setIsProcessing(false);
+  }
+
+  const handleSliceColorChanged = (v: number, type: string) => {
+    if (!editorContext) return;
+    const {windowsSliceArray} = editorContext;
+    if (type === "window") {
+      setSliceWindowLevel(v);
+    } else {
+      setSliceColorLevel(v);
+    }
+    for (const sliceData of windowsSliceArray) {
+      const property = sliceData.imageSlice.image.actor.getProperty();
+      if (type === "window") {
+        property.setColorWindow(v);
+      } else {
+        property.setColorLevel(v);
+      }
+      sliceData.windowSlice.renderWindow.render();
+    }
   }
 
   return (
@@ -231,6 +255,31 @@ export const ThreeDEditorNav = ({
             onClick={(e: any) => e.target.value = null}
             onChange={handleLoadLabelMapInputChanged}
           />
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <p className="font-bold">Lighting</p>
+        <div className="flex items-center justify-between">
+            <span>WL: {sliceWindowLevel.toFixed(1)}</span>
+            <input
+              type="range"
+              value={sliceWindowLevel.toFixed(1)}
+              min={0}
+              max={1000}
+              onChange={(e) => handleSliceColorChanged(parseFloat(e.target.value), "window")}
+            />
+        </div>
+        <div className="flex items-center justify-between">
+            <span>CL: {sliceColorLevel.toFixed(2)}</span>
+            <input
+              type="range"
+              value={sliceColorLevel.toFixed(2)}
+              min={0}
+              max={100}
+              step={0.01}
+              onChange={(e) => handleSliceColorChanged(parseFloat(e.target.value), "level")}
+            />
         </div>
       </div>
     </div>
