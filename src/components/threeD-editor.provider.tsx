@@ -64,7 +64,7 @@ export const ThreeDEditorProvider = ({
   const [slices3dVisibility, setSlices3dVisibility] = useState<boolean>(false);
   const [label3dVisibility, setLabel3dVisibility] = useState<boolean>(false);
   const [activeTool ,setActiveTool] = useState<EditorTool>();
-  const [crossHairVisibility, setCrossHairVisibility] = useState<boolean>(true);
+  const [crossHairVisibility, setCrossHairVisibility] = useState<boolean>(false);
   const [autoFillBetweenSlices, setAutoFillBetweenSlices] = useState<boolean>(false);
 
   const labelsData: EditorLabel[] = [

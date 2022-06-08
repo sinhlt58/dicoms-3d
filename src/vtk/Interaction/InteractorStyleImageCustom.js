@@ -1,7 +1,10 @@
 import macro from '@kitware/vtk.js/macros';
 
+import vtkInteractorStyleConstants from '@kitware/vtk.js/Rendering/Core/InteractorStyle/Constants.js';
 import vtkInteractorStyleImage from "@kitware/vtk.js/Interaction/Style/InteractorStyleImage";
-import vtkInteractorStyle from "@kitware/vtk.js/Rendering/Core/InteractorStyle";
+
+const States = vtkInteractorStyleConstants.States;
+
 // vtkInteractorStyleImageCustom methods
 // ----------------------------------------------------------------------------
 
@@ -22,17 +25,33 @@ function vtkInteractorStyleImageCustom(publicAPI, model) {
   }
 
   publicAPI.handleStartMouseWheel = function (callData) {
-    console.log("start");
+    if (!model.enabled || !model.enabledSlice) return;
+    publicAPI.startSlice();
+    publicAPI.handleMouseWheel(callData);
   }; //--------------------------------------------------------------------------
 
 
   publicAPI.handleEndMouseWheel = function () {
-    console.log("end");
+    if (!model.enabled || !model.enabledSlice) return;
+    publicAPI.endSlice();
   }; //--------------------------------------------------------------------------
 
 
-  publicAPI.handleMouseWheel = function () {
-    console.log("wheel");
+  publicAPI.handleMouseWheel = function (callData) {
+    if (!model.enabled || !model.enabledSlice || !model.image) return;
+    const spinY = callData.spinY;
+
+    switch (model.state) {
+      case States.IS_SLICE:
+        let slice = model.image.mapper.getSlice();
+        const delta = spinY > 0 ? 1 : spinY < 0 ? -1 : 0;
+        slice += delta;
+        // clamp slice
+        if (slice < model.minSlice) slice = model.minSlice;
+        if (slice > model.maxSlice) slice = model.maxSlice;
+        model.image.mapper.setSlice(slice);
+        break;
+    }
   }; //----------------------------------------------------------------------------
 
 } // ----------------------------------------------------------------------------
@@ -41,6 +60,12 @@ function vtkInteractorStyleImageCustom(publicAPI, model) {
 
 
 var DEFAULT_VALUES = {
+  image: null,
+  widgetManager: null,
+  isWindowActive: false,
+  enabledSlice: true,
+  minSlice: 0,
+  maxSlice: 0,
 }; // ----------------------------------------------------------------------------
 
 function extend(publicAPI, model) {
@@ -48,6 +73,8 @@ function extend(publicAPI, model) {
   Object.assign(model, DEFAULT_VALUES, initialValues); // Inheritance
 
   vtkInteractorStyleImage.extend(publicAPI, model, initialValues); // Create get-set macros
+
+  macro.setGet(publicAPI, model, ["isWindowActive", "enabledSlice", "minSlice", "maxSlice"]);
 
   vtkInteractorStyleImageCustom(publicAPI, model);
 } // ----------------------------------------------------------------------------

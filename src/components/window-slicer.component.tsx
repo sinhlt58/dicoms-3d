@@ -62,6 +62,14 @@ export const WindowSlicer = forwardRef(({
     labelMap.mapper.set(image.mapper.get("slice", "slicingMode"));
   }, []);
 
+  const moveResliceCursorToImageCenter = useCallback((
+    widgets,
+    imageData,
+  ) => {
+    const imageCenter = imageData.getCenter();
+    widgets.resliceCursorWidget.setCenter(imageCenter);
+  }, []);
+
   const moveResliceCursorToSlice = useCallback((
     axis,
     widgets: any,
@@ -117,8 +125,20 @@ export const WindowSlicer = forwardRef(({
     } = windowSlice;
     const {image, labelMap} = imageSlice;
 
+    // update panel
+    const extent: any = imageData.getExtent();
+    const minSlice = extent[axis * 2];
+    const maxSlice = extent[axis * 2 + 1];
+    setMaxSlice(maxSlice);
+    setMinSlice(minSlice);
+
     // set 2D view
-    const isstyle = vtkInteractorStyleImageCustom.newInstance();
+    const isstyle = vtkInteractorStyleImageCustom.newInstance({
+      image,
+      widgetManager,
+      minSlice,
+      maxSlice,
+    });
     // isstyle.setInteractionMode("IMAGE_SLICING");
     renderWindow.getInteractor().setInteractorStyle(isstyle);
     camera.setParallelProjection(true);
@@ -242,11 +262,6 @@ export const WindowSlicer = forwardRef(({
     image.mapper.setSlicingMode(axis);
     image.mapper.setSlice(0);
 
-    // update panel
-    const extent: any = imageData.getExtent();
-    setMaxSlice(extent[axis * 2 + 1]);
-    setMinSlice(extent[axis * 2]);
-
     image.mapper.onModified(() => {
       update(image, imageData, widgets, painter, handles, labelMap);
     });
@@ -261,6 +276,7 @@ export const WindowSlicer = forwardRef(({
       axis,
       imageData,
       widgetManager,
+      isstyle,
       widgets,
       labelMap,
       image,
@@ -305,12 +321,32 @@ export const WindowSlicer = forwardRef(({
   useEffect(() => {
     crossHairVisibilityRef.current = crossHairVisibility;
     if (!context) return;
-    const {handles, renderWindow} = context;
+    const {
+      axis,
+      isstyle,
+      handles,
+      renderWindow,
+      widgets,
+      imageData,
+      image,
+    } = context;
+    isstyle.setEnabledSlice(!crossHairVisibility);
     handles.resliceCursorHandle.setVisibility(crossHairVisibility);
     handles.resliceCursorHandle.setEnabled(crossHairVisibility);
+
+    if (crossHairVisibility) {
+      moveResliceCursorToImageCenter(widgets, imageData);
+      moveSliceToResliceCursor(axis, widgets, image, imageData);
+    }
+
     renderWindow.render();
 
-  }, [crossHairVisibility, context]);
+  }, [
+    crossHairVisibility,
+    context,
+    moveResliceCursorToImageCenter,
+    moveSliceToResliceCursor,
+  ]);
 
   useEffect(() => {
     if (!context) return;
@@ -331,6 +367,7 @@ export const WindowSlicer = forwardRef(({
       axis,
       image,
       imageData,
+      isstyle,
       painter,
       widgetManager,
       widgets,
@@ -338,6 +375,7 @@ export const WindowSlicer = forwardRef(({
       labelMap,
     } = context;
 
+    isstyle.setIsWindowActive(isWindowActive);
     if (isWindowActive) {
       if (activeTool) {
         painter.setSlicingMode(axis);
