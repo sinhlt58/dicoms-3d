@@ -7,10 +7,11 @@ const States = vtkInteractorStyleConstants.States;
 
 // vtkInteractorStyleImageCustom methods
 // ----------------------------------------------------------------------------
-
 function vtkInteractorStyleImageCustom(publicAPI, model) {
   // Set our className
   model.classHierarchy.push('vtkInteractorStyleImageCustom'); // Public API methods
+
+  let sliceSumSpinY = 0;
 
   publicAPI.handleKeyPress = function (callData) {
 
@@ -27,11 +28,12 @@ function vtkInteractorStyleImageCustom(publicAPI, model) {
   publicAPI.handleStartMouseWheel = function (callData) {
     if (!model.enabled || !model.enabledSlice) return;
     publicAPI.startSlice();
+    sliceSumSpinY = 0;
     publicAPI.handleMouseWheel(callData);
   }; //--------------------------------------------------------------------------
 
 
-  publicAPI.handleEndMouseWheel = function () {
+  publicAPI.handleEndMouseWheel = function (callData) {
     if (!model.enabled || !model.enabledSlice) return;
     publicAPI.endSlice();
   }; //--------------------------------------------------------------------------
@@ -43,13 +45,16 @@ function vtkInteractorStyleImageCustom(publicAPI, model) {
 
     switch (model.state) {
       case States.IS_SLICE:
+        sliceSumSpinY += Math.abs(spinY);
+        if (sliceSumSpinY < 1.2) return;
         let slice = model.image.mapper.getSlice();
-        const delta = spinY > 0 ? 1 : spinY < 0 ? -1 : 0;
+        const delta = spinY >= 0 ? 1 : spinY < 0 ? -1 : 0;
         slice += delta;
         // clamp slice
         if (slice < model.minSlice) slice = model.minSlice;
         if (slice > model.maxSlice) slice = model.maxSlice;
         model.image.mapper.setSlice(slice);
+        sliceSumSpinY = 0;
         break;
     }
   }; //----------------------------------------------------------------------------
