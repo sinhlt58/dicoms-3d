@@ -174,10 +174,11 @@ function vtkInteractorStyleImageCustom(publicAPI, model) {
     switch (model.state) {
       case States.IS_SLICE:
         sliceSumSpinY += Math.abs(spinY);
-        if (sliceSumSpinY < 1.2) return;
+        const rate = 1.2;
+        if (sliceSumSpinY < rate) return;
         let slice = model.image.mapper.getSlice();
-        const delta = spinY >= 0 ? 1 : spinY < 0 ? -1 : 0;
-        slice += delta;
+        const direction = spinY > 0 ? 1 : spinY < 0 ? -1 : 0;
+        slice += direction * Math.floor(sliceSumSpinY / rate);
         // clamp slice
         if (slice < model.minSlice) slice = model.minSlice;
         if (slice > model.maxSlice) slice = model.maxSlice;
