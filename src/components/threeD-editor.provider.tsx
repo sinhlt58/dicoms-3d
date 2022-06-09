@@ -36,6 +36,8 @@ interface ThreeDEditorState {
   setCrossHairVisibility: (v: boolean) => void;
   autoFillBetweenSlices: boolean;
   setAutoFillBetweenSlices: (v: boolean) => void;
+  brushRadius: number;
+  setBrushRadius: (v: number) => void;
 
   activeLabel: EditorLabel;
   setActiveLabel: (v: EditorLabel) => void;
@@ -71,6 +73,7 @@ export const ThreeDEditorProvider = ({
   const [activeTool ,setActiveTool] = useState<EditorTool>();
   const [crossHairVisibility, setCrossHairVisibility] = useState<boolean>(false);
   const [autoFillBetweenSlices, setAutoFillBetweenSlices] = useState<boolean>(false);
+  const [brushRadius, setBrushRadius] = useState(10);
   // Lighting
   const [sliceWindowLevel, setSliceWindowLevel] = useState(255);
   const [sliceColorLevel, setSliceColorLevel] = useState(2);
@@ -286,6 +289,13 @@ export const ThreeDEditorProvider = ({
     }
   }
 
+  useEffect(() => {
+    if (!context) return;
+    const {painter, widgets} = context;
+    painter.setRadius(brushRadius);
+    widgets.paintWidget.setRadius(brushRadius);
+  }, [brushRadius, context]);
+
   const saveLabelMap = async () => {
     if (!context) return;
     const labelMap = context.painter.getLabelMap();
@@ -319,6 +329,8 @@ export const ThreeDEditorProvider = ({
     setCrossHairVisibility,
     autoFillBetweenSlices,
     setAutoFillBetweenSlices,
+    brushRadius,
+    setBrushRadius,
 
     activeLabel,
     setActiveLabel,

@@ -25,6 +25,8 @@ export const ThreeDEditorNav = ({
     setCrossHairVisibility,
     autoFillBetweenSlices,
     setAutoFillBetweenSlices,
+    brushRadius,
+    setBrushRadius,
 
     activeLabel,
     setActiveLabel,
@@ -193,6 +195,20 @@ export const ThreeDEditorNav = ({
           />
           <span>Auto fill between</span>
         </div>
+        {
+          activeTool?.type === EditorToolType.SEGMENT_BRUSH &&
+          <div className="flex items-center justify-between">
+            <span>Radius: {brushRadius}</span>
+            <input
+              type="range"
+              min={1}
+              max={20}
+              step={1}
+              value={brushRadius}
+              onChange={e => setBrushRadius(parseInt(e.target.value))}
+            />
+          </div>
+        }
       </div>
 
       <div className="">
