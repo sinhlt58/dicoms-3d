@@ -268,6 +268,10 @@ export const WindowSlicer = forwardRef(({
     ready();
 
     // set priorities to disabled scrolling from reslice cursor
+    // also prevent using tool when press shift, ctrol, alt
+    // pan, dolly, spin always have higer priority than tools
+    // we return EVENT_ABORT in vtkInteractorStyleImageCustom
+    // so to prevent tool to process event
     // higher value means having higher priority
     isstyle.setPriority(2);
     handles.resliceCursorHandle.setPriority(1);

@@ -1,6 +1,6 @@
-import macro from '@kitware/vtk.js/macros';
+import macro from "@kitware/vtk.js/macros";
 
-import vtkInteractorStyleConstants from '@kitware/vtk.js/Rendering/Core/InteractorStyle/Constants.js';
+import vtkInteractorStyleConstants from "@kitware/vtk.js/Rendering/Core/InteractorStyle/Constants.js";
 import vtkInteractorStyleImage from "@kitware/vtk.js/Interaction/Style/InteractorStyleImage";
 
 const States = vtkInteractorStyleConstants.States;
@@ -9,7 +9,7 @@ const States = vtkInteractorStyleConstants.States;
 // ----------------------------------------------------------------------------
 function vtkInteractorStyleImageCustom(publicAPI, model) {
   // Set our className
-  model.classHierarchy.push('vtkInteractorStyleImageCustom'); // Public API methods
+  model.classHierarchy.push("vtkInteractorStyleImageCustom"); // Public API methods
 
   let sliceSumSpinY = 0;
   let cameraFirstUp = undefined;
@@ -22,28 +22,28 @@ function vtkInteractorStyleImageCustom(publicAPI, model) {
       case States.IS_ROTATE:
         publicAPI.handleMouseRotate(renderer, pos);
         publicAPI.invokeInteractionEvent({
-          type: 'InteractionEvent'
+          type: "InteractionEvent"
         });
         break;
 
       case States.IS_PAN:
         publicAPI.handleMousePan(renderer, pos);
         publicAPI.invokeInteractionEvent({
-          type: 'InteractionEvent'
+          type: "InteractionEvent"
         });
         break;
 
       case States.IS_DOLLY:
         publicAPI.handleMouseDolly(renderer, pos);
         publicAPI.invokeInteractionEvent({
-          type: 'InteractionEvent'
+          type: "InteractionEvent"
         });
         break;
 
       case States.IS_SPIN:
         publicAPI.handleMouseSpin(renderer, pos);
         publicAPI.invokeInteractionEvent({
-          type: 'InteractionEvent'
+          type: "InteractionEvent"
         });
         break;
 
@@ -68,11 +68,15 @@ function vtkInteractorStyleImageCustom(publicAPI, model) {
       } else {
         publicAPI.startPan();
       }
+
+      return macro.EVENT_ABORT;
     } else if (callData.controlKey || callData.altKey) {
       if (!cameraFirstUp) {
         cameraFirstUp = model.renderer.getActiveCamera().getViewUp();
       }
       publicAPI.startSpin();
+
+      return macro.EVENT_ABORT;
     } else {
       if (!model.enabledWindowLevel) return;
       model.windowLevelStartPosition[0] = pos.x;
@@ -131,12 +135,10 @@ function vtkInteractorStyleImageCustom(publicAPI, model) {
     }
   }
 
-  publicAPI.handleKeyUp = function (callData) {
-    console.log("handleKeyUp")
+  publicAPI.handleKeyDown = function (callData) {
   }
 
-  publicAPI.handleKeyDown = function (callData) {
-    console.log("handleKeyDown")
+  publicAPI.handleKeyUp = function (callData) {
   }
 
   publicAPI.handleStartMouseWheel = function (callData) {
@@ -188,7 +190,7 @@ function vtkInteractorStyleImageCustom(publicAPI, model) {
         model.image.mapper.setSlice(slice);
         sliceSumSpinY = 0;
         publicAPI.invokeInteractionEvent({
-          type: 'Slice',
+          type: "Slice",
           slice,
         });
         break;
@@ -252,7 +254,7 @@ function vtkInteractorStyleImageCustom(publicAPI, model) {
     property.setColorLevel(newLevel);
 
     publicAPI.invokeInteractionEvent({
-      type: 'WindowLevel',
+      type: "WindowLevel",
       newWindow,
       newLevel,
     });
@@ -285,7 +287,7 @@ function extend(publicAPI, model) {
   vtkInteractorStyleImageCustom(publicAPI, model);
 } // ----------------------------------------------------------------------------
 
-var newInstance = macro.newInstance(extend, 'vtkInteractorStyleImageCustom'); // ----------------------------------------------------------------------------
+var newInstance = macro.newInstance(extend, "vtkInteractorStyleImageCustom"); // ----------------------------------------------------------------------------
 
 var vtkInteractorStyleImageCustom$1 = {
   newInstance: newInstance,
