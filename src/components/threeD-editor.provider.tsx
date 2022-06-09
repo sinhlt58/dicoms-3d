@@ -10,7 +10,7 @@ import { writeImageArrayBuffer } from "itk-wasm";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { itkHelper } from "../itk_import";
 import { downloadBlob } from "../utils/utils";
-import { SlicingMode, ViewTypes, vtkPaintFilterCustom, vtkPaintWidget, vtkResliceCursorWidget, vtkSplineWidget, vtkWidgetManager, xyzToViewType } from "../vtk_import";
+import { SlicingMode, ViewTypes, vtkPaintFilterCustom, vtkPaintWidgetCustom, vtkResliceCursorWidget, vtkSplineWidget, vtkWidgetManager, xyzToViewType } from "../vtk_import";
 import { EditorLabel, EditorTool } from "./editor.models";
 import { ThreeDEditorNav } from "./threeD-editor-nav.component";
 import { WindowSlicer } from "./window-slicer.component";
@@ -137,7 +137,7 @@ export const ThreeDEditorProvider = ({
  
     const painter = vtkPaintFilterCustom.newInstance();
     const widgets: any = {
-      paintWidget: vtkPaintWidget.newInstance(),
+      paintWidget: vtkPaintWidgetCustom.newInstance(),
       polygonWidget: vtkSplineWidget.newInstance({
         resetAfterPointPlacement: true,
         resolution: 1,
@@ -177,6 +177,7 @@ export const ThreeDEditorProvider = ({
     const windowsSliceData: any = {};
     const windowsSliceArray: any = [];
     const axes = [SlicingMode.K, SlicingMode.I, SlicingMode.J];
+
     for (const axis of axes) {
       const windowSlice = createGenericWindow();
       let sliceRef;
@@ -200,6 +201,8 @@ export const ThreeDEditorProvider = ({
         polygonHandle: windowSlice.widgetManager.addWidget(widgets.polygonWidget, ViewTypes.SLICE),
         resliceCursorHandle: windowSlice.widgetManager.addWidget(widgets.resliceCursorWidget, xyzToViewType[axis]),
       };
+      // set this so the handle circle scale is equal to the tail circles
+      handles.paintHandle.getRepresentations()[0].setActiveScaleFactor(1.0);
 
       const imageSlice = {
         image: {

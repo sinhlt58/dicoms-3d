@@ -5,6 +5,7 @@ import vtkInteractorStyleImageCustom from "./vtk/Interaction/InteractorStyleImag
 
 import vtkWidgetManager from "@kitware/vtk.js/Widgets/Core/WidgetManager";
 import vtkPaintWidget from "@kitware/vtk.js/Widgets/Widgets3D/PaintWidget";
+import vtkPaintWidgetCustom from "./vtk/Widgets/Widgets3D/PaintWidgetCustom";
 import vtkAngleWidget from "@kitware/vtk.js/Widgets/Widgets3D/AngleWidget";
 import vtkLabelWidget from "@kitware/vtk.js/Widgets/Widgets3D/LabelWidget";
 import vtkSplineWidget from "@kitware/vtk.js/Widgets/Widgets3D/SplineWidget";
@@ -25,6 +26,7 @@ export {
   vtkInteractorStyleImageCustom,
   vtkWidgetManager,
   vtkPaintWidget,
+  vtkPaintWidgetCustom,
   vtkAngleWidget,
   vtkLabelWidget,
   vtkPaintFilter,
