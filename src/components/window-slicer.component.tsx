@@ -34,6 +34,7 @@ export const WindowSlicer = forwardRef(({
   const isWindowActive = useMemo(() => activeWindow === windowId, [activeWindow, windowId]);
 
   const crossHairVisibilityRef = useRef<boolean>(false);
+  const [isResliceCursorOnInteraction, setIsResliceCursorOnInteraction] = useState(false);
 
   const update = useCallback((
     image: any,
@@ -141,7 +142,8 @@ export const WindowSlicer = forwardRef(({
     camera.setParallelProjection(true);
 
     isstyle.onInteractionEvent((e: any) => {
-      if (e.type === "WindowLevel") {
+      const eventType = e.type;
+      if (eventType === "WindowLevel") {
         const {newWindow, newLevel} = e;
         for (const sliceData of otherSlicesData) {
           const property = sliceData.imageSlice.image.actor.getProperty();
@@ -150,6 +152,13 @@ export const WindowSlicer = forwardRef(({
           sliceData.windowSlice.renderWindow.render();
           setSliceWindowLevel(newWindow);
           setSliceColorLevel(newLevel);
+        }
+      } else if (eventType === "Slice") {
+        if (!crossHairVisibilityRef.current) return;
+        moveResliceCursorToSlice(axis, widgets, imageData, image);
+        for (const sliceData of otherSlicesData) {
+          moveSliceToResliceCursor(sliceData.axis, widgets, sliceData.imageSlice.image, imageData);
+          sliceData.windowSlice.renderWindow.render();
         }
       }
     });
@@ -214,7 +223,7 @@ export const WindowSlicer = forwardRef(({
     handles.polygonHandle.onEndInteractionEvent(() => {
       const points = handles.polygonHandle.getPoints();
       painter.paintPolygon(points);
-      handles.polygonHandle.updateRepresentationForRender();
+      handles.polygonHandle.updateRepresentationForRender(); 
     });
     initializeHandle(handles.polygonHandle);
     handles.polygonHandle.setOutputBorder(true);
@@ -233,13 +242,8 @@ export const WindowSlicer = forwardRef(({
     });
 
     handles.resliceCursorHandle.onStartInteractionEvent(() => {
-      if (!crossHairVisibilityRef.current) return;
-      // handle scroll case
-      moveResliceCursorToSlice(axis, widgets, imageData, image);
-      for (const sliceData of otherSlicesData) {
-        moveSliceToResliceCursor(sliceData.axis, widgets, sliceData.imageSlice.image, imageData);
-      }
-    });
+      setIsResliceCursorOnInteraction(true);
+    })
 
     handles.resliceCursorHandle.onInteractionEvent(({
       computeFocalPointOffset,
@@ -253,6 +257,7 @@ export const WindowSlicer = forwardRef(({
     });
 
     handles.resliceCursorHandle.onEndInteractionEvent(() => {
+      setIsResliceCursorOnInteraction(false);
       // handle scroll case
       moveResliceCursorToSlice(axis, widgets, imageData, image);
       for (const sliceData of otherSlicesData) {
@@ -261,6 +266,13 @@ export const WindowSlicer = forwardRef(({
     });
     
     ready();
+
+    // set priorities to disabled scrolling from reslice cursor
+    // higher value means having higher priority
+    isstyle.setPriority(2);
+    handles.resliceCursorHandle.setPriority(1);
+    handles.paintHandle.setPriority(1);
+    handles.polygonHandle.setPriority(1);
 
     // set input data
     image.mapper.setInputData(imageData);
@@ -312,6 +324,20 @@ export const WindowSlicer = forwardRef(({
     setSliceColorLevel,
   ]);
 
+  // enabled/disabled window level based on active tools
+  useEffect(() => {
+    if (!context) return;
+    const {isstyle} = context;
+    if (!isWindowActive) return;
+
+    if (isResliceCursorOnInteraction || 
+       (activeTool && activeTool.type !== EditorToolType.NAVIGATION_CROSS_HAIR)) {
+      isstyle.setEnabledWindowLevel(false);
+    } else {
+      isstyle.setEnabledWindowLevel(true);
+    }
+  }, [context, isResliceCursorOnInteraction, activeTool, isWindowActive]);
+
   useEffect(() => {
     if (!context) return;
     const {
@@ -334,14 +360,12 @@ export const WindowSlicer = forwardRef(({
     if (!context) return;
     const {
       axis,
-      isstyle,
       handles,
       renderWindow,
       widgets,
       imageData,
       image,
     } = context;
-    isstyle.setEnabledSlice(!crossHairVisibility);
     handles.resliceCursorHandle.setVisibility(crossHairVisibility);
     handles.resliceCursorHandle.setEnabled(crossHairVisibility);
 
@@ -358,57 +382,6 @@ export const WindowSlicer = forwardRef(({
     moveResliceCursorToImageCenter,
     moveSliceToResliceCursor,
   ]);
-
-  useEffect(() => {
-    if (!context) return;
-
-    const updateHandlesVisibility = (visible: boolean) => {
-      if (!context) return;
-      const {handles, renderWindow} = context;
-      if (activeTool?.type === EditorToolType.SEGMENT_BRUSH){
-        handles.paintHandle.setVisibility(visible);
-      }
-      if (activeTool?.type === EditorToolType.SEGMENT_POLY){
-        // handles.polygonHandle.setVisibility(visible);
-      }
-      renderWindow.render();
-    }
-
-    const {
-      axis,
-      image,
-      imageData,
-      isstyle,
-      painter,
-      widgetManager,
-      widgets,
-      handles,
-      labelMap,
-    } = context;
-
-    isstyle.setIsWindowActive(isWindowActive);
-    if (isWindowActive) {
-      if (activeTool) {
-        painter.setSlicingMode(axis);
-        update(image, imageData, widgets, painter, handles, labelMap);
-      }
-      if (activeTool?.type === EditorToolType.SEGMENT_BRUSH) {
-        widgetManager.grabFocus(widgets.paintWidget);
-      } else if (activeTool?.type === EditorToolType.SEGMENT_POLY) {
-        widgetManager.grabFocus(widgets.polygonWidget);
-      } else if (activeTool?.type === EditorToolType.NAVIGATION_CROSS_HAIR) {
-        handles.resliceCursorHandle.setDragable(true);
-      }
-      updateHandlesVisibility(true);
-    } else {
-      updateHandlesVisibility(false);
-      handles.resliceCursorHandle.setDragable(false);
-      if (activeTool?.type === EditorToolType.NAVIGATION_CROSS_HAIR) {
-        widgetManager.releaseFocus();
-      }
-    }
-
-  }, [context, isWindowActive, activeTool, update]);
 
   const handleSliceChanged = (slice: number) => {
     if (!context) return;
@@ -430,14 +403,64 @@ export const WindowSlicer = forwardRef(({
     }
   }
 
+  const updateHandlesVisibility = (visible: boolean) => {
+    if (!context) return;
+    const {handles, renderWindow} = context;
+    if (activeTool?.type === EditorToolType.SEGMENT_BRUSH){
+      handles.paintHandle.setVisibility(visible);
+    }
+    if (activeTool?.type === EditorToolType.SEGMENT_POLY){
+      // handles.polygonHandle.setVisibility(visible);
+    }
+    renderWindow.render();
+  }
+
   const handleContainerOnMouseEnter = () => {
     setActiveWindow(windowId);
+    if (!context) return;
+
+    const {
+      axis,
+      image,
+      imageData,
+      isstyle,
+      painter,
+      widgetManager,
+      widgets,
+      handles,
+      labelMap,
+    } = context;
+
+    isstyle.setIsWindowActive(true);
+    if (activeTool) {
+      painter.setSlicingMode(axis);
+      update(image, imageData, widgets, painter, handles, labelMap);
+    }
+    if (activeTool?.type === EditorToolType.SEGMENT_BRUSH) {
+      widgetManager.grabFocus(widgets.paintWidget);
+    } else if (activeTool?.type === EditorToolType.SEGMENT_POLY) {
+      widgetManager.grabFocus(widgets.polygonWidget);
+    } else if (activeTool?.type === EditorToolType.NAVIGATION_CROSS_HAIR) {
+      handles.resliceCursorHandle.setDragable(true);
+    }
+    updateHandlesVisibility(true);
   }
 
   const handleContainerOnMouseLeave = () => {
     setActiveWindow(-1);
     if (!context) return;
+
+    const {
+      isstyle,
+      widgetManager,
+      handles,
+    } = context;
     context.painter.clearHistory();
+
+    isstyle.setIsWindowActive(false);
+    updateHandlesVisibility(false);
+    handles.resliceCursorHandle.setDragable(false);
+    widgetManager.releaseFocus();
   }
 
   const handleContainerOnMouseMove = () => {

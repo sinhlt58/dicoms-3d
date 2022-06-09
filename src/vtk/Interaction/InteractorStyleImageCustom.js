@@ -74,6 +74,7 @@ function vtkInteractorStyleImageCustom(publicAPI, model) {
       }
       publicAPI.startSpin();
     } else {
+      if (!model.enabledWindowLevel) return;
       model.windowLevelStartPosition[0] = pos.x;
       model.windowLevelStartPosition[1] = pos.y; // Get the last (the topmost) image
 
@@ -149,6 +150,7 @@ function vtkInteractorStyleImageCustom(publicAPI, model) {
       sliceSumSpinY = 0;
       publicAPI.handleMouseWheel(callData);
     }
+    return macro.EVENT_ABORT;
   }; //--------------------------------------------------------------------------
 
 
@@ -164,18 +166,19 @@ function vtkInteractorStyleImageCustom(publicAPI, model) {
         break;
       default:
     }
+    return macro.EVENT_ABORT;
   }; //--------------------------------------------------------------------------
 
 
   publicAPI.handleMouseWheel = function (callData) {
     if (!model.enabled || !model.enabledSlice || !model.image) return;
     const spinY = callData.spinY;
-
+    
     switch (model.state) {
       case States.IS_SLICE:
         sliceSumSpinY += Math.abs(spinY);
         const rate = 1.2;
-        if (sliceSumSpinY < rate) return;
+        if (sliceSumSpinY < rate) break;
         let slice = model.image.mapper.getSlice();
         const direction = spinY > 0 ? 1 : spinY < 0 ? -1 : 0;
         slice += direction * Math.floor(sliceSumSpinY / rate);
@@ -184,6 +187,10 @@ function vtkInteractorStyleImageCustom(publicAPI, model) {
         if (slice > model.maxSlice) slice = model.maxSlice;
         model.image.mapper.setSlice(slice);
         sliceSumSpinY = 0;
+        publicAPI.invokeInteractionEvent({
+          type: 'Slice',
+          slice,
+        });
         break;
       case States.IS_DOLLY:
         var dyf = 1 - spinY / model.zoomFactor;
@@ -191,9 +198,15 @@ function vtkInteractorStyleImageCustom(publicAPI, model) {
         break;
       default:
     }
+    return macro.EVENT_ABORT;
   }; //----------------------------------------------------------------------------
 
   publicAPI.windowLevel = function (renderer, position) {
+    if (!model.enabledWindowLevel) {
+      publicAPI.endWindowLevel();
+      return;
+    }
+
     model.windowLevelCurrentPosition[0] = position.x;
     model.windowLevelCurrentPosition[1] = position.y;
     var rwi = model._interactor;
@@ -255,6 +268,7 @@ var DEFAULT_VALUES = {
   renderer: null,
   widgetManager: null,
   isWindowActive: false,
+  enabledWindowLevel: true,
   enabledSlice: true,
   minSlice: 0,
   maxSlice: 0,
@@ -266,7 +280,7 @@ function extend(publicAPI, model) {
 
   vtkInteractorStyleImage.extend(publicAPI, model, initialValues); // Create get-set macros
 
-  macro.setGet(publicAPI, model, ["isWindowActive", "enabledSlice", "minSlice", "maxSlice"]);
+  macro.setGet(publicAPI, model, ["isWindowActive", "enabledWindowLevel", "enabledSlice", "minSlice", "maxSlice"]);
 
   vtkInteractorStyleImageCustom(publicAPI, model);
 } // ----------------------------------------------------------------------------
