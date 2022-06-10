@@ -128,6 +128,7 @@ function vtkInteractorStyleImageCustom(publicAPI, model) {
           model.renderer.getActiveCamera().setViewUp(cameraFirstUp);
         }
         const bounds = model.image.actor.getBounds();
+        const camera = model.renderer.getActiveCamera();
         model.renderer.resetCamera(bounds);
         rwi.render();
         break;

@@ -163,12 +163,12 @@ export const WindowSlicer = forwardRef(({
       }
     });
 
-    const setCamera = (sliceMode: any, renderer: vtkRenderer, data: vtkImageData) => {
+    const setCamera = (axis: any, renderer: vtkRenderer, data: vtkImageData) => {
       const ijk: Vector3 = [0, 0, 0];
       const position: Vector3 = [0, 0, 0];
       const focalPoint: Vector3 = [0, 0, 0];
       data.indexToWorld(ijk, focalPoint);
-      ijk[sliceMode] = 1;
+      ijk[axis] = 1;
       data.indexToWorld(ijk, position);
 
       renderer.getActiveCamera().set({
@@ -177,9 +177,34 @@ export const WindowSlicer = forwardRef(({
       });
       const bounds = image.actor.getBounds();
       renderer.resetCamera(bounds);
-      if (sliceMode === SlicingMode.I) {
+      if (axis === SlicingMode.I) {
         renderer.getActiveCamera().roll(-90);
       }
+
+      // scale camera to fit the image
+      const wI = Math.abs(bounds[0] - bounds[1]);
+      const wJ = Math.abs(bounds[2] - bounds[3]);
+      const wK = Math.abs(bounds[4] - bounds[5]);
+      console.log(`wI: ${wI}, wJ: ${wJ}, wK: ${wK}`);
+
+      let ps = renderer.getActiveCamera().getParallelScale();
+      const view = renderer.getRenderWindow()?.getViews()[0];
+      const dim = view.getViewportSize(renderer);
+      const aspect = dim[0] / dim[1];
+      
+      switch (axis) {
+        case SlicingMode.I:
+          ps = Math.max(wJ, wK);
+          break;
+        case SlicingMode.J:
+          ps = Math.max(wI, wK);
+          break;
+        case SlicingMode.K:
+          ps = Math.max(wI, wJ);
+          break;
+      }
+      ps /= 2;
+      renderer.getActiveCamera().setParallelScale(ps);
     }
 
     const ready = () => {
