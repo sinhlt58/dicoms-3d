@@ -67,7 +67,7 @@ export const WindowVolume = ({
     labelFilterVolume.actor.setMapper(labelFilterVolume.mapper);
     labelFilterVolume.actor.getProperty().setRGBTransferFunction(0, labelFilterVolume.cfunc);
     labelFilterVolume.actor.getProperty().setScalarOpacity(0, labelFilterVolume.ofunc);
-    // labelFilterVolume.actor.getProperty().setInterpolationTypeToLinear();
+    labelFilterVolume.actor.getProperty().setInterpolationTypeToNearest();
     
     renderer.addVolume(labelFilterVolume.actor);
     renderer.addVolume(imageVolume.actor);

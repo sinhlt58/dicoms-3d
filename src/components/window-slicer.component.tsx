@@ -194,6 +194,7 @@ export const WindowSlicer = forwardRef(({
     labelMap.actor.getProperty().setRGBTransferFunction(0, labelMap.cfunc);
     labelMap.actor.getProperty().setScalarOpacity(0, labelMap.ofunc);
     labelMap.actor.getProperty().setUseLookupTableScalarRange(true);
+    labelMap.actor.getProperty().setInterpolationTypeToNearest();
 
     image.actor.setMapper(image.mapper);
     image.actor.getProperty().setColorWindow(255);
@@ -349,10 +350,10 @@ export const WindowSlicer = forwardRef(({
       renderWindow,
     } = context;
 
-    labelMap.ofunc.addPoint(0, 0);
+    // labelMap.ofunc.addPoint(0, 0);
     for (const label of labels) {
       const rgb = hexToRgb(label.color);
-      labelMap.cfunc.addRGBPoint(label.maskValue, rgb[0], rgb[1], rgb[2]);
+      labelMap.cfunc.addRGBPointLong(label.maskValue, rgb[0], rgb[1], rgb[2]);
       labelMap.ofunc.addPoint(label.maskValue, label.opacity / 100);
     }
 

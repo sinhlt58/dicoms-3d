@@ -89,14 +89,14 @@ export const ThreeDEditorProvider = ({
     {
       id: 1,
       name: "Dog",
-      color: "#FF0000",
+      color: "#00FF00",
       opacity: 60,
       maskValue: 1,
     },
     {
       id: 2,
       name: "Cat",
-      color: "#00FF00",
+      color: "#FF0000",
       opacity: 60,
       maskValue: 2,
     },
@@ -157,6 +157,7 @@ export const ThreeDEditorProvider = ({
     const radius = 10;
     painter.setRadius(radius);
     widgets.paintWidget.setRadius(radius);
+    console.log(painter)
 
     // init stuff for window volume
     const windowVolume = createGenericWindow();
