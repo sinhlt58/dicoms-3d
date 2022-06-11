@@ -201,11 +201,11 @@ export const ThreeDEditorNav = ({
             <span>Radius: {brushRadius}</span>
             <input
               type="range"
-              min={1}
+              min={0.1}
               max={20}
-              step={1}
+              step={0.1}
               value={brushRadius}
-              onChange={e => setBrushRadius(parseInt(e.target.value))}
+              onChange={e => setBrushRadius(parseFloat(e.target.value))}
             />
           </div>
         }
