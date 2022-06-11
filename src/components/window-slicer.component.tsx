@@ -3,7 +3,7 @@ import vtkImageData from "@kitware/vtk.js/Common/DataModel/ImageData";
 import vtkRenderer from "@kitware/vtk.js/Rendering/Core/Renderer";
 import { Vector3 } from "@kitware/vtk.js/types";
 import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { CaptureOn, SlicingMode, vtkInteractorStyleImageCustom } from "../vtk_import";
+import { CaptureOn, fitImageBoundToCamera, SlicingMode, vtkInteractorStyleImageCustom } from "../vtk_import";
 import { useThreeDEditorContext } from "./threeD-editor.provider";
 import { EditorToolType } from "./editor.models";
 import { classnames, hexToRgb } from "../utils/utils";
@@ -132,6 +132,7 @@ export const WindowSlicer = forwardRef(({
 
     // set 2D view
     const isstyle = vtkInteractorStyleImageCustom.newInstance({
+      axis,
       image,
       renderer,
       widgetManager,
@@ -171,40 +172,35 @@ export const WindowSlicer = forwardRef(({
       ijk[axis] = 1;
       data.indexToWorld(ijk, position);
 
+      // setting up vector
+      const upVector: Vector3 = [0, 0, 0];
+      switch (axis) {
+        case SlicingMode.I: // K as height
+          ijk[0] = 0; ijk[1] = 0; ijk[2] = 1;
+          break;
+        case SlicingMode.J: // K as height
+          ijk[0] = 0; ijk[1] = 0; ijk[2] = 1;
+          break;
+        case SlicingMode.K: // J as height
+          ijk[0] = 0; ijk[1] = 1; ijk[2] = 0;
+          break;
+        default:
+      }
+      data.indexToWorld(ijk, upVector);
+      const imagePos = data.getOrigin();
+      upVector[0] = upVector[0] - imagePos[0];
+      upVector[1] = upVector[1] - imagePos[1];
+      upVector[2] = upVector[2] - imagePos[2];
+
       renderer.getActiveCamera().set({
         position: position,
         focalPoint: focalPoint,
+        viewUp: upVector,
       });
       const bounds = image.actor.getBounds();
       renderer.resetCamera(bounds);
-      if (axis === SlicingMode.I) {
-        renderer.getActiveCamera().roll(-90);
-      }
 
-      // scale camera to fit the image
-      const wI = Math.abs(bounds[0] - bounds[1]);
-      const wJ = Math.abs(bounds[2] - bounds[3]);
-      const wK = Math.abs(bounds[4] - bounds[5]);
-      console.log(`wI: ${wI}, wJ: ${wJ}, wK: ${wK}`);
-
-      let ps = renderer.getActiveCamera().getParallelScale();
-      const view = renderer.getRenderWindow()?.getViews()[0];
-      const dim = view.getViewportSize(renderer);
-      const aspect = dim[0] / dim[1];
-      
-      switch (axis) {
-        case SlicingMode.I:
-          ps = Math.max(wJ, wK);
-          break;
-        case SlicingMode.J:
-          ps = Math.max(wI, wK);
-          break;
-        case SlicingMode.K:
-          ps = Math.max(wI, wJ);
-          break;
-      }
-      ps /= 2;
-      renderer.getActiveCamera().setParallelScale(ps);
+      fitImageBoundToCamera(axis, renderer, bounds);
     }
 
     const ready = () => {

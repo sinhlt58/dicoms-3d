@@ -17,6 +17,8 @@ import vtkPaintFilter from "@kitware/vtk.js/Filters/General/PaintFilter";
 import vtkPaintFilterCustom from "./vtk/Filters/General/PaintFilterCustom";
 import { ViewTypes, CaptureOn } from "@kitware/vtk.js/Widgets/Core/WidgetManager/Constants";
 
+import {fitImageBoundToCamera} from "./vtk/utils";
+
 const {SlicingMode} = ImageConstants;
 
 export {
@@ -38,4 +40,5 @@ export {
   ViewTypes,
   CaptureOn,
   SlicingMode,
+  fitImageBoundToCamera,
 }

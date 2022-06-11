@@ -3,6 +3,8 @@ import macro from "@kitware/vtk.js/macros";
 import vtkInteractorStyleConstants from "@kitware/vtk.js/Rendering/Core/InteractorStyle/Constants.js";
 import vtkInteractorStyleImage from "@kitware/vtk.js/Interaction/Style/InteractorStyleImage";
 
+import {fitImageBoundToCamera} from "../utils";
+
 const States = vtkInteractorStyleConstants.States;
 
 // vtkInteractorStyleImageCustom methods
@@ -128,8 +130,8 @@ function vtkInteractorStyleImageCustom(publicAPI, model) {
           model.renderer.getActiveCamera().setViewUp(cameraFirstUp);
         }
         const bounds = model.image.actor.getBounds();
-        const camera = model.renderer.getActiveCamera();
         model.renderer.resetCamera(bounds);
+        fitImageBoundToCamera(model.axis, model.renderer, bounds);
         rwi.render();
         break;
       default:
@@ -267,6 +269,7 @@ function vtkInteractorStyleImageCustom(publicAPI, model) {
 
 
 var DEFAULT_VALUES = {
+  axis: null,
   image: null,
   renderer: null,
   widgetManager: null,
