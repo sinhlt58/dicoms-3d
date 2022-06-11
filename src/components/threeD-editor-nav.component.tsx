@@ -282,7 +282,7 @@ export const ThreeDEditorNav = ({
               type="range"
               value={sliceWindowLevel.toFixed(1)}
               min={0}
-              max={1000}
+              max={10000}
               onChange={(e) => handleSliceColorChanged(parseFloat(e.target.value), "window")}
             />
         </div>

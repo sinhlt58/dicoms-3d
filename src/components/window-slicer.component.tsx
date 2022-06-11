@@ -221,7 +221,7 @@ export const WindowSlicer = forwardRef(({
     labelMap.actor.getProperty().setInterpolationTypeToNearest();
 
     image.actor.setMapper(image.mapper);
-    image.actor.getProperty().setColorWindow(255);
+    image.actor.getProperty().setColorWindow(1000);
     image.actor.getProperty().setColorLevel(2);
 
     // ----------------------------------------------------------------------------

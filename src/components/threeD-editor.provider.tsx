@@ -75,7 +75,7 @@ export const ThreeDEditorProvider = ({
   const [autoFillBetweenSlices, setAutoFillBetweenSlices] = useState<boolean>(false);
   const [brushRadius, setBrushRadius] = useState(10);
   // Lighting
-  const [sliceWindowLevel, setSliceWindowLevel] = useState(255);
+  const [sliceWindowLevel, setSliceWindowLevel] = useState(1000);
   const [sliceColorLevel, setSliceColorLevel] = useState(2);
 
   const labelsData: EditorLabel[] = [
