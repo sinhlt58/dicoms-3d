@@ -7,6 +7,7 @@ import { CaptureOn, fitImageBoundToCamera, SlicingMode, vtkInteractorStyleImageC
 import { useThreeDEditorContext } from "./threeD-editor.provider";
 import { EditorToolType } from "./editor.models";
 import { classnames, hexToRgb } from "../utils/utils";
+import { normalize } from "@kitware/vtk.js/Common/Core/Math";
 
 interface Props {
   axis: any,
@@ -191,6 +192,10 @@ export const WindowSlicer = forwardRef(({
       upVector[0] = upVector[0] - imagePos[0];
       upVector[1] = upVector[1] - imagePos[1];
       upVector[2] = upVector[2] - imagePos[2];
+      // need to normalize up vector
+      // some how other features might be broken
+      // like brush tool not display correctly
+      normalize(upVector); 
 
       renderer.getActiveCamera().set({
         position: position,
