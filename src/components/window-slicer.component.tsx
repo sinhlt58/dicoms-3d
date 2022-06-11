@@ -204,8 +204,6 @@ export const WindowSlicer = forwardRef(({
     }
 
     const ready = () => {
-      renderer.resetCamera();
-      genericRenderWindow.resize();
       widgetManager.enablePicking();
     }
 
@@ -288,6 +286,10 @@ export const WindowSlicer = forwardRef(({
     });
     
     ready();
+
+    genericRenderWindow.onResize(() => {
+      setCamera(axis, renderer, imageData);
+    });
 
     // set priorities to disabled scrolling from reslice cursor
     // also prevent using tool when press shift, ctrol, alt
