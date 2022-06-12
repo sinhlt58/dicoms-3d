@@ -449,6 +449,14 @@ export const WindowSlicer = forwardRef(({
     if (activeTool?.type === EditorToolType.SEGMENT_POLY){
       handles.polygonHandle.setVisibility(visible);
     }
+
+    if (activeTool?.type !== EditorToolType.SEGMENT_BRUSH) {
+      handles.paintHandle.setVisibility(false);
+    }
+    if (activeTool?.type !== EditorToolType.SEGMENT_POLY) {
+      handles.polygonHandle.setVisibility(false);
+      handles.polygonHandle.reset();
+    }
     renderWindow.render();
   }, []);
 
@@ -481,13 +489,6 @@ export const WindowSlicer = forwardRef(({
     } else if (!activeTool) {
       handles.resliceCursorHandle.setDragable(false);
       widgetManager.releaseFocus();
-    }
-
-    if (activeTool?.type !== EditorToolType.SEGMENT_BRUSH) {
-      handles.paintHandle.setVisibility(false);
-    }
-    if (activeTool?.type !== EditorToolType.SEGMENT_POLY) {
-      handles.polygonHandle.setVisibility(false);
     }
 
     updateHandlesVisibility(!!activeTool, context, activeTool);
