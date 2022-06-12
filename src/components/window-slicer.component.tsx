@@ -38,6 +38,9 @@ export const WindowSlicer = forwardRef(({
   const crossHairVisibilityRef = useRef<boolean>(false);
   const [isResliceCursorOnInteraction, setIsResliceCursorOnInteraction] = useState(false);
 
+  const isWindowActiveRef = useRef(isWindowActive);
+  const activeWindowRef = useRef(activeWindow);
+
   const update = useCallback((
     image: any,
     imageData: any,
@@ -103,6 +106,14 @@ export const WindowSlicer = forwardRef(({
     const snapSlice =  Math.floor(centerIJK[axis]);
     image.mapper.setSlice(snapSlice);
   }, []);
+
+  useEffect(() => {
+    isWindowActiveRef.current = isWindowActive;
+  }, [isWindowActive]);
+
+  useEffect(() => {
+    activeWindowRef.current = activeWindow;
+  }, [activeWindow]);
 
   useEffect(() => {
     if (!editorContext || !ref.current) return;
@@ -422,9 +433,13 @@ export const WindowSlicer = forwardRef(({
     handles.resliceCursorHandle.setVisibility(crossHairVisibility);
     handles.resliceCursorHandle.setEnabled(crossHairVisibility);
 
+    
     if (crossHairVisibility) {
-      moveResliceCursorToImageCenter(widgets, imageData);
-      moveSliceToResliceCursor(axis, widgets, image, imageData);
+      if (isWindowActiveRef.current) {
+        moveResliceCursorToSlice(axis, widgets, imageData, image);
+      } else if (activeWindowRef.current === -1) {
+        moveSliceToResliceCursor(axis, widgets, image, imageData);
+      }
     }
 
     renderWindow.render();
@@ -434,6 +449,7 @@ export const WindowSlicer = forwardRef(({
     context,
     moveResliceCursorToImageCenter,
     moveSliceToResliceCursor,
+    moveResliceCursorToSlice,
   ]);
 
   const updateHandlesVisibility = useCallback((
@@ -447,14 +463,16 @@ export const WindowSlicer = forwardRef(({
       handles.paintHandle.setVisibility(visible);
     }
     if (activeTool?.type === EditorToolType.SEGMENT_POLY){
-      handles.polygonHandle.setVisibility(visible);
+      // BUG if use this line the cross hair stuff will have problem
+      // handles.polygonHandle.setVisibility(visible);
     }
 
     if (activeTool?.type !== EditorToolType.SEGMENT_BRUSH) {
       handles.paintHandle.setVisibility(false);
     }
     if (activeTool?.type !== EditorToolType.SEGMENT_POLY) {
-      handles.polygonHandle.setVisibility(false);
+      // BUG if use this line the cross hair stuff will have problem
+      // handles.polygonHandle.setVisibility(false);  
       handles.polygonHandle.reset();
     }
     renderWindow.render();
