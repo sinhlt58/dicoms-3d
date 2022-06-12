@@ -1,7 +1,7 @@
 import vtkImageData from "@kitware/vtk.js/Common/DataModel/ImageData";
 import { Fragment, useRef, useState } from "react";
 import { classnames, fileToVTKImage } from "../utils/utils";
-import { EditorLabel, EditorTool, EditorToolType } from "./editor.models";
+import { EditorLabel, EditorTool, EditorToolType, EDITOR_TOOLS } from "./editor.models";
 import { useThreeDEditorContext } from "./threeD-editor.provider"
 
 interface Props {
@@ -43,24 +43,6 @@ export const ThreeDEditorNav = ({
 
   const inputLoadLabelMapRef = useRef<HTMLInputElement>(null);
   const [isProcesing, setIsProcessing] = useState(false);
-
-  const tools: EditorTool[] = [
-    {
-      id: 0, 
-      name: "Cross",
-      type: EditorToolType.NAVIGATION_CROSS_HAIR,
-    },
-    {
-      id: 1,
-      name: "Brush",
-      type: EditorToolType.SEGMENT_BRUSH,
-    },
-    {
-      id: 2,
-      name: "Poly",
-      type: EditorToolType.SEGMENT_POLY,
-    },
-  ];
 
   const handleToolClick = (tool: EditorTool) => {
     if (activeTool?.id === tool.id) {
@@ -163,7 +145,7 @@ export const ThreeDEditorNav = ({
         <p className="font-bold">Tools</p>
         <div className="flex items-center gap-2 flex-wrap">
           {
-            tools.map(tool => {
+            EDITOR_TOOLS.map(tool => {
               return (
                 <button 
                   key={tool.id}

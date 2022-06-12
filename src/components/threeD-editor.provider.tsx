@@ -11,7 +11,7 @@ import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { itkHelper } from "../itk_import";
 import { downloadBlob } from "../utils/utils";
 import { SlicingMode, ViewTypes, vtkPaintFilterCustom, vtkPaintWidgetCustom, vtkResliceCursorWidget, vtkSplineWidget, vtkWidgetManager, xyzToViewType } from "../vtk_import";
-import { EditorLabel, EditorTool } from "./editor.models";
+import { EditorLabel, EditorTool, EDITOR_TOOLS } from "./editor.models";
 import { ThreeDEditorNav } from "./threeD-editor-nav.component";
 import { WindowSlicer } from "./window-slicer.component";
 import { WindowVolume } from "./window-volume.component";
@@ -85,6 +85,7 @@ export const ThreeDEditorProvider = ({
       color: "#FFFFFF",
       opacity: 0,
       maskValue: 0,
+      keyBind: "0",
     },
     {
       id: 1,
@@ -92,6 +93,7 @@ export const ThreeDEditorProvider = ({
       color: "#FF0000",
       opacity: 60,
       maskValue: 1,
+      keyBind: "1",
     },
     {
       id: 2,
@@ -99,6 +101,7 @@ export const ThreeDEditorProvider = ({
       color: "#00FF00",
       opacity: 60,
       maskValue: 2,
+      keyBind: "2",
     },
     {
       id: 3,
@@ -106,14 +109,36 @@ export const ThreeDEditorProvider = ({
       color: "#0000FF",
       opacity: 60,
       maskValue: 3,
+      keyBind: "3",
     },
   ];
   const [labels, setLabels] = useState<EditorLabel[]>(labelsData);
   const [activeLabel, setActiveLabel] = useState<EditorLabel>(labelsData[1]);
 
+  const labelsRef = useRef<EditorLabel[]>(labelsData);
+  const activeToolRef = useRef<EditorTool>();
+  const activeLabelRef = useRef<EditorLabel>(labelsData[1]);
+  const crossHairVisibilityRef = useRef(false);
+
   const sliceIRef = useRef<HTMLDivElement>();
   const sliceJRef = useRef<HTMLDivElement>();
   const sliceKRef = useRef<HTMLDivElement>();
+
+  useEffect(() => {
+    activeToolRef.current = activeTool;
+  }, [activeTool]);
+
+  useEffect(() => {
+    activeLabelRef.current = activeLabel;
+  }, [activeLabel]);
+
+  useEffect(() => {
+    labelsRef.current = labels;
+  }, [labels]);
+
+  useEffect(() => {
+    crossHairVisibilityRef.current = crossHairVisibility;
+  }, [crossHairVisibility]);
 
   useEffect(() => {
     if (!imageData || 
@@ -226,6 +251,33 @@ export const ThreeDEditorProvider = ({
       windowsSliceArray.push(data);
     }
 
+    const  handleKeyUp = (e: any) => {
+      const key = e.key;
+      for (const tool of EDITOR_TOOLS) {
+        if (tool.keyBind === key) {
+          if (activeToolRef.current?.id === tool.id){
+            setActiveTool(undefined);
+          } else {
+            setActiveTool(tool);
+          }
+        }
+      }
+
+      for (const label of labelsRef.current) {
+        if (label.keyBind === key) {
+          setActiveLabel(label);
+        }
+      }
+      
+      switch (key) {
+        case 'C':
+          setCrossHairVisibility(!crossHairVisibilityRef.current);
+          break;
+      }
+    }
+
+    window.addEventListener("keyup", handleKeyUp);
+
     setContext({
       imageData,
 
@@ -241,6 +293,8 @@ export const ThreeDEditorProvider = ({
     });
 
     return () => {
+      window.removeEventListener("keyup", handleKeyUp);
+
       const releaseWindow = (window: any) => {
         window.genericRenderWindow.delete();
         window.widgetManager.delete();
@@ -312,7 +366,7 @@ export const ThreeDEditorProvider = ({
     if (!context) return;
     context.painter.setLabelMap(vtkImage);
   }
-  
+
   const value: ThreeDEditorState = {
     editorContext: context,
     renderAllWindows,

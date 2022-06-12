@@ -5,7 +5,7 @@ import { Vector3 } from "@kitware/vtk.js/types";
 import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CaptureOn, fitImageBoundToCamera, InteractionEventTypes, SlicingMode, vtkInteractorStyleImageCustom } from "../vtk_import";
 import { useThreeDEditorContext } from "./threeD-editor.provider";
-import { EditorToolType } from "./editor.models";
+import { EditorTool, EditorToolType } from "./editor.models";
 import { classnames, hexToRgb } from "../utils/utils";
 import { normalize } from "@kitware/vtk.js/Common/Core/Math";
 
@@ -181,7 +181,7 @@ export const WindowSlicer = forwardRef(({
         painter.setRadius(radius);
         widgets.paintWidget.setRadius(radius);
         setBrushRadius(radius);
-      } 
+      }
     });
 
     const setCamera = (axis: any, renderer: vtkRenderer, data: vtkImageData) => {
@@ -436,6 +436,64 @@ export const WindowSlicer = forwardRef(({
     moveSliceToResliceCursor,
   ]);
 
+  const updateHandlesVisibility = useCallback((
+    visible: boolean,
+    context: any,
+    activeTool: EditorTool | undefined,
+  ) => {
+    if (!context) return;
+    const {handles, renderWindow} = context;
+    if (activeTool?.type === EditorToolType.SEGMENT_BRUSH){
+      handles.paintHandle.setVisibility(visible);
+    }
+    if (activeTool?.type === EditorToolType.SEGMENT_POLY){
+      handles.polygonHandle.setVisibility(visible);
+    }
+    renderWindow.render();
+  }, []);
+
+  useEffect(() => {
+    if (!context) return;
+    if (activeWindow !== windowId) return;
+
+    const {
+      axis,
+      image,
+      imageData,
+      painter,
+      widgetManager,
+      widgets,
+      handles,
+      labelMap,
+    } = context;
+
+    widgetManager.releaseFocus();
+    if (activeTool) {
+      painter.setSlicingMode(axis);
+      update(image, imageData, widgets, painter, handles, labelMap);
+    }
+    if (activeTool?.type === EditorToolType.SEGMENT_BRUSH) {
+      widgetManager.grabFocus(widgets.paintWidget);
+    } else if (activeTool?.type === EditorToolType.SEGMENT_POLY) {
+      widgetManager.grabFocus(widgets.polygonWidget);
+    } else if (activeTool?.type === EditorToolType.NAVIGATION_CROSS_HAIR) {
+      handles.resliceCursorHandle.setDragable(true);
+    } else if (!activeTool) {
+      handles.resliceCursorHandle.setDragable(false);
+      widgetManager.releaseFocus();
+    }
+
+    if (activeTool?.type !== EditorToolType.SEGMENT_BRUSH) {
+      handles.paintHandle.setVisibility(false);
+    }
+    if (activeTool?.type !== EditorToolType.SEGMENT_POLY) {
+      handles.polygonHandle.setVisibility(false);
+    }
+
+    updateHandlesVisibility(!!activeTool, context, activeTool);
+
+  }, [activeTool, context, activeWindow, windowId, update, updateHandlesVisibility]);
+
   const handleSliceChanged = (slice: number) => {
     if (!context) return;
     const {
@@ -454,18 +512,6 @@ export const WindowSlicer = forwardRef(({
     for (const sliceData of windowsSliceArray) {
       sliceData.windowSlice.renderWindow.render();
     }
-  }
-
-  const updateHandlesVisibility = (visible: boolean) => {
-    if (!context) return;
-    const {handles, renderWindow} = context;
-    if (activeTool?.type === EditorToolType.SEGMENT_BRUSH){
-      handles.paintHandle.setVisibility(visible);
-    }
-    if (activeTool?.type === EditorToolType.SEGMENT_POLY){
-      // handles.polygonHandle.setVisibility(visible);
-    }
-    renderWindow.render();
   }
 
   const handleContainerOnMouseEnter = () => {
@@ -496,7 +542,7 @@ export const WindowSlicer = forwardRef(({
     } else if (activeTool?.type === EditorToolType.NAVIGATION_CROSS_HAIR) {
       handles.resliceCursorHandle.setDragable(true);
     }
-    updateHandlesVisibility(true);
+    updateHandlesVisibility(true, context, activeTool);
   }
 
   const handleContainerOnMouseLeave = () => {
@@ -511,9 +557,9 @@ export const WindowSlicer = forwardRef(({
     context.painter.clearHistory();
 
     isstyle.setIsWindowActive(false);
-    updateHandlesVisibility(false);
     handles.resliceCursorHandle.setDragable(false);
     widgetManager.releaseFocus();
+    updateHandlesVisibility(false, context, activeTool);
   }
 
   const handleContainerOnMouseMove = () => {
