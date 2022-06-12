@@ -7,6 +7,13 @@ import {fitImageBoundToCamera} from "../utils";
 
 const States = vtkInteractorStyleConstants.States;
 
+const InteractionEventTypes = {
+  Slice: "Slice",
+  WindowLevel: "WindowLevel",
+  Undo: "Undo",
+  Redo: "Redo",
+}
+
 // vtkInteractorStyleImageCustom methods
 // ----------------------------------------------------------------------------
 function vtkInteractorStyleImageCustom(publicAPI, model) {
@@ -134,6 +141,17 @@ function vtkInteractorStyleImageCustom(publicAPI, model) {
         fitImageBoundToCamera(model.axis, model.renderer, bounds);
         rwi.render();
         break;
+      case "\x1A": // control + z
+        if (callData.shiftKey) {
+          publicAPI.invokeInteractionEvent({
+            type: InteractionEventTypes.Redo,
+          });
+        } else {
+          publicAPI.invokeInteractionEvent({
+            type: InteractionEventTypes.Undo,
+          });
+        }
+        break;
       default:
     }
   }
@@ -193,7 +211,7 @@ function vtkInteractorStyleImageCustom(publicAPI, model) {
         model.image.mapper.setSlice(slice);
         sliceSumSpinY = 0;
         publicAPI.invokeInteractionEvent({
-          type: "Slice",
+          type: InteractionEventTypes.Slice,
           slice,
         });
         break;
@@ -257,7 +275,7 @@ function vtkInteractorStyleImageCustom(publicAPI, model) {
     property.setColorLevel(newLevel);
 
     publicAPI.invokeInteractionEvent({
-      type: "WindowLevel",
+      type: InteractionEventTypes.WindowLevel,
       newWindow,
       newLevel,
     });
@@ -298,4 +316,9 @@ var vtkInteractorStyleImageCustom$1 = {
   extend: extend
 };
 
-export { vtkInteractorStyleImageCustom$1 as default, extend, newInstance };
+export {
+  vtkInteractorStyleImageCustom$1 as default,
+  extend,
+  newInstance,
+  InteractionEventTypes,
+};

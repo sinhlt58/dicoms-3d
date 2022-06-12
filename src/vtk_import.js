@@ -2,6 +2,7 @@ import vtkColorMaps from "@kitware/vtk.js/Rendering/Core/ColorTransferFunction/C
 import ImageConstants from "@kitware/vtk.js/Rendering/Core/ImageMapper/Constants";
 import vtkInteractorStyleImage from "@kitware/vtk.js/Interaction/Style/InteractorStyleImage";
 import vtkInteractorStyleImageCustom from "./vtk/Interaction/InteractorStyleImageCustom";
+import {InteractionEventTypes} from "./vtk/Interaction/InteractorStyleImageCustom"
 
 import vtkWidgetManager from "@kitware/vtk.js/Widgets/Core/WidgetManager";
 import vtkPaintWidget from "@kitware/vtk.js/Widgets/Widgets3D/PaintWidget";
@@ -29,6 +30,7 @@ export {
   vtkWidgetManager,
   vtkPaintWidget,
   vtkPaintWidgetCustom,
+  InteractionEventTypes,
   vtkAngleWidget,
   vtkLabelWidget,
   vtkPaintFilter,

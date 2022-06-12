@@ -3,7 +3,7 @@ import vtkImageData from "@kitware/vtk.js/Common/DataModel/ImageData";
 import vtkRenderer from "@kitware/vtk.js/Rendering/Core/Renderer";
 import { Vector3 } from "@kitware/vtk.js/types";
 import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { CaptureOn, fitImageBoundToCamera, SlicingMode, vtkInteractorStyleImageCustom } from "../vtk_import";
+import { CaptureOn, fitImageBoundToCamera, InteractionEventTypes, SlicingMode, vtkInteractorStyleImageCustom } from "../vtk_import";
 import { useThreeDEditorContext } from "./threeD-editor.provider";
 import { EditorToolType } from "./editor.models";
 import { classnames, hexToRgb } from "../utils/utils";
@@ -145,7 +145,7 @@ export const WindowSlicer = forwardRef(({
 
     isstyle.onInteractionEvent((e: any) => {
       const eventType = e.type;
-      if (eventType === "WindowLevel") {
+      if (eventType === InteractionEventTypes.WindowLevel) {
         const {newWindow, newLevel} = e;
         for (const sliceData of otherSlicesData) {
           const property = sliceData.imageSlice.image.actor.getProperty();
@@ -155,12 +155,20 @@ export const WindowSlicer = forwardRef(({
           setSliceWindowLevel(newWindow);
           setSliceColorLevel(newLevel);
         }
-      } else if (eventType === "Slice") {
+      } else if (eventType === InteractionEventTypes.Slice) {
         if (!crossHairVisibilityRef.current) return;
         moveResliceCursorToSlice(axis, widgets, imageData, image);
         for (const sliceData of otherSlicesData) {
           moveSliceToResliceCursor(sliceData.axis, widgets, sliceData.imageSlice.image, imageData);
           sliceData.windowSlice.renderWindow.render();
+        }
+      } else if (eventType === InteractionEventTypes.Undo) {
+        if (painter.canUndo()) {
+          painter.undo();
+        }
+      } else if (eventType === InteractionEventTypes.Redo) {
+        if (painter.canRedo()) {
+          painter.redo();
         }
       }
     });
