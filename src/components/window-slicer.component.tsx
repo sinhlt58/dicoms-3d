@@ -30,6 +30,7 @@ export const WindowSlicer = forwardRef(({
     labels,
     setSliceColorLevel,
     setSliceWindowLevel,
+    setBrushRadius,
   } = useThreeDEditorContext();
   const [context, setContext] = useState<any>();
   const isWindowActive = useMemo(() => activeWindow === windowId, [activeWindow, windowId]);
@@ -170,7 +171,17 @@ export const WindowSlicer = forwardRef(({
         if (painter.canRedo()) {
           painter.redo();
         }
-      }
+      } else if (eventType === InteractionEventTypes.IncreaseOrDecrease) {
+        const {direction} = e;
+        let radius = painter.getRadius();
+        radius += direction * 0.5;
+        if (radius < 0.1) radius = 0.1;
+        if (radius > 20) radius = 20;
+        radius = parseFloat(radius.toFixed(1));
+        painter.setRadius(radius);
+        widgets.paintWidget.setRadius(radius);
+        setBrushRadius(radius);
+      } 
     });
 
     const setCamera = (axis: any, renderer: vtkRenderer, data: vtkImageData) => {
@@ -363,6 +374,7 @@ export const WindowSlicer = forwardRef(({
     moveSliceToResliceCursor,
     setSliceWindowLevel,
     setSliceColorLevel,
+    setBrushRadius,
   ]);
 
   // enabled/disabled window level based on active tools

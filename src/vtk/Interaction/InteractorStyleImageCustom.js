@@ -12,6 +12,7 @@ const InteractionEventTypes = {
   WindowLevel: "WindowLevel",
   Undo: "Undo",
   Redo: "Redo",
+  IncreaseOrDecrease: "IncreaseOrDecrease",
 }
 
 // vtkInteractorStyleImageCustom methods
@@ -168,7 +169,8 @@ function vtkInteractorStyleImageCustom(publicAPI, model) {
     if (callData.shiftKey) {
       publicAPI.startDolly();
       publicAPI.handleMouseWheel(callData);
-    } else if (model.enabledSlice) {
+    }
+    else if (model.enabledSlice || callData.altKey) {
       publicAPI.startSlice();
       sliceSumSpinY = 0;
       publicAPI.handleMouseWheel(callData);
@@ -202,8 +204,18 @@ function vtkInteractorStyleImageCustom(publicAPI, model) {
         sliceSumSpinY += Math.abs(spinY);
         const rate = 1.2;
         if (sliceSumSpinY < rate) break;
-        let slice = model.image.mapper.getSlice();
         const direction = spinY > 0 ? 1 : spinY < 0 ? -1 : 0;
+
+        if (callData.altKey) {
+          publicAPI.invokeInteractionEvent({
+            type: InteractionEventTypes.IncreaseOrDecrease,
+            direction,
+          });
+          sliceSumSpinY = 0;
+          break;
+        }
+
+        let slice = model.image.mapper.getSlice();
         slice += direction * Math.floor(sliceSumSpinY / rate);
         // clamp slice
         if (slice < model.minSlice) slice = model.minSlice;
