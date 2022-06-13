@@ -109,7 +109,8 @@ export const WindowSlicer = forwardRef(({
     const center = widgetState.getCenter();
     const centerIJK = imageData.worldToIndex(center);
     // to make the widget display before the slice
-    const snapSlice =  Math.floor(centerIJK[axis]);
+    // TODO: snap to direction toward to the camera later
+    const snapSlice =  Math.floor(centerIJK[axis] + (axis !== SlicingMode.I ? 1 : 0));
     image.mapper.setSlice(snapSlice);
   }, []);
 
