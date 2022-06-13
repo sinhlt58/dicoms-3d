@@ -41,6 +41,12 @@ export const WindowSlicer = forwardRef(({
   const isWindowActiveRef = useRef(isWindowActive);
   const activeWindowRef = useRef(activeWindow);
 
+  const axisToTopAxisNameMap: any = {
+    [SlicingMode.I]: ["S", "P", "I", "A"], // top right bottom left
+    [SlicingMode.J]: ["S", "L", "I", "R"], // top right bottom left
+    [SlicingMode.K]: ["A", "L", "P", "R"], // top right bottom left
+  };
+
   const update = useCallback((
     image: any,
     imageData: any,
@@ -200,7 +206,10 @@ export const WindowSlicer = forwardRef(({
       const position: Vector3 = [0, 0, 0];
       const focalPoint: Vector3 = [0, 0, 0];
       data.indexToWorld(ijk, focalPoint);
-      ijk[axis] = 1;
+      ijk[axis] = -1;
+      if (axis === SlicingMode.I) {
+        ijk[axis] = 1;
+      }
       data.indexToWorld(ijk, position);
 
       // setting up vector
@@ -213,10 +222,11 @@ export const WindowSlicer = forwardRef(({
           ijk[0] = 0; ijk[1] = 0; ijk[2] = 1;
           break;
         case SlicingMode.K: // J as height
-          ijk[0] = 0; ijk[1] = 1; ijk[2] = 0;
+          ijk[0] = 0; ijk[1] = -1; ijk[2] = 0;
           break;
         default:
       }
+
       data.indexToWorld(ijk, upVector);
       const imagePos = data.getOrigin();
       upVector[0] = upVector[0] - imagePos[0];
@@ -225,7 +235,7 @@ export const WindowSlicer = forwardRef(({
       // need to normalize up vector
       // some how other features might be broken
       // like brush tool not display correctly
-      normalize(upVector); 
+      normalize(upVector);
 
       renderer.getActiveCamera().set({
         position: position,
@@ -614,6 +624,18 @@ export const WindowSlicer = forwardRef(({
             onChange={(e) => handleSliceChanged(parseInt(e.target.value))}
           />
         </div>
+      </div>
+      <div className="absolute top-1 right-1/2 transform translate-x-1/2">
+        <span className="text-lg text-white">{axisToTopAxisNameMap[axis][0]}</span>
+      </div>
+      <div className="absolute right-1 top-1/2 transform -translate-y-1/2">
+        <span className="text-lg text-white">{axisToTopAxisNameMap[axis][1]}</span>
+      </div>
+      <div className="absolute bottom-1 right-1/2 transform translate-x-1/2">
+        <span className="text-lg text-white">{axisToTopAxisNameMap[axis][2]}</span>
+      </div>
+      <div className="absolute left-1 top-1/2 transform -translate-y-1/2">
+        <span className="text-lg text-white">{axisToTopAxisNameMap[axis][3]}</span>
       </div>
     </div>
   )
