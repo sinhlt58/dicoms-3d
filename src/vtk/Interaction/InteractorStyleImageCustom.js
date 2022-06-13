@@ -142,15 +142,19 @@ function vtkInteractorStyleImageCustom(publicAPI, model) {
         fitImageBoundToCamera(model.axis, model.renderer, bounds);
         rwi.render();
         break;
-      case "\x1A": // control + z
-        if (callData.shiftKey) {
-          publicAPI.invokeInteractionEvent({
-            type: InteractionEventTypes.Redo,
-          });
-        } else {
-          publicAPI.invokeInteractionEvent({
-            type: InteractionEventTypes.Undo,
-          });
+      case "\x1A": // control + z on window
+      case "z":
+      case "Z":
+        if (callData.controlKey) {
+          if (callData.shiftKey) {
+            publicAPI.invokeInteractionEvent({
+              type: InteractionEventTypes.Redo,
+            });
+          } else {
+            publicAPI.invokeInteractionEvent({
+              type: InteractionEventTypes.Undo,
+            });
+          }
         }
         break;
       default:
