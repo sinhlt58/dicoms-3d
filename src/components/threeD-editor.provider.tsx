@@ -357,7 +357,7 @@ export const ThreeDEditorProvider = ({
     if (!context) return;
     const labelMap = context.painter.getLabelMap();
     const itkImage = itkHelper.convertVtkToItkImage(labelMap, {}); // we pass empty object in order to copy data so no dettach error.
-    const {arrayBuffer: buffer} = await writeImageArrayBuffer(null, itkImage, "labelMap.nii");
+    const {arrayBuffer: buffer} = await writeImageArrayBuffer(null, itkImage, "labelMap.nii", "", true);
     const blob = new Blob([buffer]);
     downloadBlob(blob, "labelMap.nii");
   }
