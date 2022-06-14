@@ -7,7 +7,6 @@ import { CaptureOn, fitImageBoundToCamera, InteractionEventTypes, SlicingMode, v
 import { useThreeDEditorContext } from "./threeD-editor.provider";
 import { EditorTool, EditorToolType } from "./editor.models";
 import { classnames, hexToRgb } from "../utils/utils";
-import { normalize } from "@kitware/vtk.js/Common/Core/Math";
 
 interface Props {
   axis: any,
@@ -220,26 +219,26 @@ export const WindowSlicer = forwardRef(({
       const upVector: Vector3 = [0, 0, 0];
       switch (axis) {
         case SlicingMode.I: // K as height
-          ijk[0] = 0; ijk[1] = 0; ijk[2] = 1;
-          break;
         case SlicingMode.J: // K as height
-          ijk[0] = 0; ijk[1] = 0; ijk[2] = 1;
-          break;
+          upVector[2] = 1;
+            break;
         case SlicingMode.K: // J as height
-          ijk[0] = 0; ijk[1] = -1; ijk[2] = 0;
+          upVector[1] = -1;
           break;
         default:
       }
 
-      data.indexToWorld(ijk, upVector);
-      const imagePos = data.getOrigin();
-      upVector[0] = upVector[0] - imagePos[0];
-      upVector[1] = upVector[1] - imagePos[1];
-      upVector[2] = upVector[2] - imagePos[2];
-      // need to normalize up vector
-      // some how other features might be broken
-      // like brush tool not display correctly
-      normalize(upVector);
+      // data.indexToWorld(ijk, upVector);
+      // const imagePos = data.getOrigin();
+      // upVector[0] = upVector[0] - imagePos[0];
+      // upVector[1] = upVector[1] - imagePos[1];
+      // upVector[2] = upVector[2] - imagePos[2];
+      // // need to normalize up vector
+      // // some how other features might be broken
+      // // like brush tool not display correctly
+      // normalize(upVector);
+
+      console.log(`axis: ${axis}, up: ${upVector}`);
 
       renderer.getActiveCamera().set({
         position: position,
