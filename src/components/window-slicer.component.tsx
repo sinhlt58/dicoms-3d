@@ -238,8 +238,6 @@ export const WindowSlicer = forwardRef(({
       // // like brush tool not display correctly
       // normalize(upVector);
 
-      console.log(`axis: ${axis}, up: ${upVector}`);
-
       renderer.getActiveCamera().set({
         position: position,
         focalPoint: focalPoint,
